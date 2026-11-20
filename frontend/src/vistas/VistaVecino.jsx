@@ -5,7 +5,7 @@ import { analizarBorrador, cargarSectores, enviarReporte } from "../fuente";
 import ChatAsistente from "../components/vecino/ChatAsistente";
 import PanelReporte, { filasDelReporte } from "../components/vecino/PanelReporte";
 import ExitoReporte from "../components/vecino/ExitoReporte";
-import { MAX_SEGUIMIENTOS, RESPUESTAS_VOLUMEN, SALUDO, esSobreVolumen, hora, minuscula } from "../components/vecino/textos";
+import { RESPUESTAS_TIPO, RESPUESTAS_VOLUMEN, SALUDO, esSobreTipo, esSobreVolumen, hora } from "../components/vecino/textos";
 
 // Vista vecino (diseño 04): chat con el asistente + panel "Tu reporte" que se llena en vivo.
 // Datos solo vía fuente.js (API real o, si el backend aún no tiene el endpoint, datos de ejemplo marcados).
@@ -107,7 +107,7 @@ export default function VistaVecino() {
     if (r.pregunta_seguimiento && (r.falta_informacion || []).length) {
       setSeguimientos(hechas + 1);
       setPreguntaPendiente(true);
-      setChips(esSobreVolumen(r.pregunta_seguimiento, r.falta_informacion) ? { tipo: "volumen" } : null);
+      setChips(esSobreTipo(r.pregunta_seguimiento) ? { tipo: "residuo" } : esSobreVolumen(r.pregunta_seguimiento) ? { tipo: "volumen" } : null);
       return { pregunta: r.pregunta_seguimiento };
     }
     setPreguntaPendiente(false);
@@ -225,6 +225,7 @@ export default function VistaVecino() {
   let listaChips = [];
   if (chips?.tipo === "sector") listaChips = sectores.map((s) => ({ texto: s.nombre, alElegir: () => elegirSector(s) }));
   else if (chips?.tipo === "volumen") listaChips = RESPUESTAS_VOLUMEN.map((t) => ({ texto: t, alElegir: () => enviarTexto(t) }));
+  else if (chips?.tipo === "residuo") listaChips = RESPUESTAS_TIPO.map((t) => ({ texto: t, alElegir: () => enviarTexto(t) }));
   else if (chips?.tipo === "reintentar") listaChips = [{ texto: "Reintentar", reintentar: true, alElegir: reintentar }];
 
   const nota = ejemplo

@@ -20,9 +20,16 @@ export const MAX_SEGUIMIENTOS = 2;
 const RE_VOLUMEN = /volumen|cu[aá]nto|camioneta|cami[oó]n|tama[nñ]o|cantidad/i;
 
 /** ¿La pregunta (o lo que falta) es sobre volumen? → se ofrecen respuestas rápidas. */
-export function esSobreVolumen(pregunta, falta = []) {
-  return RE_VOLUMEN.test(pregunta || "") || falta.some((f) => RE_VOLUMEN.test(f));
+// Los botones se eligen SOLO por lo que pregunta el asistente (no por la lista de faltantes),
+// para no ofrecer "Cabe en una camioneta" cuando la pregunta es sobre el tipo de basura.
+const RE_TIPO = /tipo|qu[eé] (hay|es|clase)|qu[eé] (basura|residuo)|de qu[eé]/i;
+export function esSobreVolumen(pregunta) {
+  return RE_VOLUMEN.test(pregunta || "") && !RE_TIPO.test(pregunta || "");
 }
+export function esSobreTipo(pregunta) {
+  return RE_TIPO.test(pregunta || "");
+}
+export const RESPUESTAS_TIPO = ["Escombros", "Muebles o colchones", "Ramas o poda", "Bolsas de basura", "Algo peligroso (aceite, químicos)"];
 
 export function hora(fecha = new Date()) {
   return fecha.toLocaleTimeString("es-CL", { hour: "2-digit", minute: "2-digit", hour12: false });
