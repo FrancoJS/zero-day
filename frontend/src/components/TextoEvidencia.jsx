@@ -1,5 +1,4 @@
-// Texto analizado con la evidencia resaltada. El backend ya verificó que cada fragmento existe en el texto;
-// aquí se ubica igual que allá: sin distinguir mayúsculas y con cualquier cantidad de espacios.
+// Texto analizado con la evidencia resaltada sobre superficie cálida (DESING.md §2.1 y §2.2).
 
 function escaparRegex(texto) {
   return texto.replace(/[.*+?^${}()|[\]\\]/g, "\\$&");
@@ -9,12 +8,11 @@ const normalizar = (texto = "") => texto.trim().toLowerCase().replace(/\s+/g, " 
 
 function partirConEvidencia(texto, evidencia) {
   const patrones = [...evidencia]
-    .sort((a, b) => b.length - a.length) // primero los más largos
+    .sort((a, b) => b.length - a.length)
     .map((f) => escaparRegex(f.trim()).replace(/\s+/g, "\\s+"))
     .filter(Boolean);
   if (!patrones.length) return [{ texto, resaltado: false }];
   const regex = new RegExp(`(${patrones.join("|")})`, "giu");
-  // split con grupo de captura: las posiciones impares son coincidencias
   return texto
     .split(regex)
     .map((parte, i) => ({ texto: parte, resaltado: i % 2 === 1 }))
@@ -22,13 +20,8 @@ function partirConEvidencia(texto, evidencia) {
 }
 
 /**
- * Texto original con la evidencia verificada resaltada (subrayado + fondo, y "[evidencia]" para lectores de pantalla).
- * @param {object} props
- * @param {string} props.texto  el texto que se envió a la IA
- * @param {string[]} [props.evidencia]  fragmentos verificados por el backend
- * @param {number} [props.descartada=0]  fragmentos citados que no existían (los descartó el backend)
- * @param {string} [props.fragmentoActivo]  fragmento a destacar más fuerte (el chip elegido en ChipsEvidencia)
- * @param {string} [props.titulo="Texto analizado · evidencia resaltada"]
+ * Texto original con la evidencia verificada resaltada usando el token `destacado` (#fff1d2)
+ * o `muni-primary-a11y` cuando el chip está activo.
  */
 export default function TextoEvidencia({
   texto,
@@ -40,17 +33,23 @@ export default function TextoEvidencia({
   const partes = partirConEvidencia(texto, evidencia);
   const activo = fragmentoActivo ? normalizar(fragmentoActivo) : null;
   return (
-    <div className="rounded-xl bg-sutil px-4 py-3.5">
-      {titulo && <p className="mb-1.5 text-[14px] font-bold uppercase tracking-[0.08em] text-texto2">{titulo}</p>}
-      <p className="whitespace-pre-wrap text-[18px] leading-relaxed text-texto">
+    <div className="rounded-xl border border-rose-200/80 bg-rose-50/25 p-4 dark:border-rose-900/40 dark:bg-gray-800/40">
+      {titulo && (
+        <p className="mb-1.5 text-2xs font-bold uppercase tracking-wider text-[#8C1D28]/85 dark:text-rose-300/80">
+          {titulo}
+        </p>
+      )}
+      <p className="whitespace-pre-wrap text-sm sm:text-base leading-relaxed text-gray-800 dark:text-gray-200">
         {partes.map((parte, i) => {
           if (!parte.resaltado) return <span key={i}>{parte.texto}</span>;
           const esActivo = activo && normalizar(parte.texto) === activo;
           return (
             <mark
               key={i}
-              className={`rounded px-0.5 underline decoration-2 underline-offset-4 ${
-                esActivo ? "bg-acento text-white decoration-white" : "bg-acento-suave text-acento-osc decoration-acento"
+              className={`rounded px-1 py-0.5 font-semibold underline decoration-2 underline-offset-4 transition-colors ${
+                esActivo
+                  ? "bg-muni-primary-a11y text-white decoration-white shadow-xs"
+                  : "bg-destacado text-[#6b151e] decoration-[#8C1D28] dark:bg-rose-950/80 dark:text-rose-200 dark:decoration-rose-400"
               }`}
             >
               <span className="sr-only">[evidencia] </span>
@@ -59,9 +58,11 @@ export default function TextoEvidencia({
           );
         })}
       </p>
-      {evidencia.length === 0 && <p className="mt-2 text-[15px] text-texto2">La IA no citó fragmentos del texto.</p>}
+      {evidencia.length === 0 && (
+        <p className="mt-2 text-xs text-gray-500 dark:text-gray-400">La IA no citó fragmentos del texto.</p>
+      )}
       {descartada > 0 && (
-        <p className="mt-2 text-[15px] font-medium text-adv">
+        <p className="mt-2 text-xs font-semibold text-amber-700 dark:text-amber-400">
           {descartada} fragmento(s) citado(s) por la IA no aparecían en el texto y se descartaron.
         </p>
       )}

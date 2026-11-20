@@ -22,8 +22,8 @@ export default function IndicadorModo() {
 /**
  * Vista sin red del indicador.
  * @param {object} props
- * @param {{modo_ia: "live"|"mock", modelo: string, base_datos: "conectada"|"error"|"desactivada"} | null} props.salud  null = conectando
- * @param {boolean} [props.error]  backend sin conexión
+ * @param {{modo_ia: "live"|"mock", modelo: string, base_datos: "conectada"|"error"|"desactivada"} | null} props.salud
+ * @param {boolean} [props.error]
  */
 export function InsigniasModo({ salud, error }) {
   if (error) {

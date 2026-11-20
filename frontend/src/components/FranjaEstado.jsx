@@ -1,23 +1,30 @@
 import Icono from "./Iconos";
 
+// Sub-paleta Borgoña / Vino (DESING.md §2.2) para el estado informativo/operativo
+// y estados semánticos emerald / red (§2.4) para éxito y error.
 const TONOS = {
-  info: { franja: "bg-acento-suave border-acento", mensaje: "text-acento-osc", icono: null },
-  ok: { franja: "bg-ok-fondo border-ok", mensaje: "text-ok", icono: "check" },
-  error: { franja: "bg-critico-fondo border-critico", mensaje: "text-critico", icono: "cruz" },
+  info: {
+    franja: "bg-rose-50/60 border-rose-200/80 dark:bg-gray-900 dark:border-rose-900/50",
+    mensaje: "text-[#8C1D28] dark:text-rose-200",
+    icono: null,
+  },
+  ok: {
+    franja: "bg-emerald-50/90 border-emerald-200 dark:bg-emerald-950/30 dark:border-emerald-800/60",
+    mensaje: "text-emerald-800 dark:text-emerald-200",
+    icono: "check",
+  },
+  error: {
+    franja: "bg-red-50 border-red-200 dark:bg-red-950/30 dark:border-red-800/60",
+    mensaje: "text-red-800 dark:text-red-200",
+    icono: "cruz",
+  },
 };
 
 const LECTOR = { hecho: "completado", actual: "en curso", pendiente: "pendiente", error: "con error" };
 
 /**
- * Franja de estado bajo el encabezado: qué está pasando AHORA, en una línea, con pasos del flujo.
- * Cambia de color según el tono, pero siempre dice el estado con texto e ícono.
- * @param {object} props
- * @param {"info"|"ok"|"error"} [props.tono="info"]  info = trabajando/listo, ok = terminado, error = falló
- * @param {React.ReactNode} props.mensaje  mensaje principal en negrita (ej. "Analizando…")
- * @param {React.ReactNode} [props.detalle]  detalle en peso normal (ej. "· 8 señales en 4,2 s")
- * @param {boolean} [props.ocupado]  muestra un punto que late junto al mensaje (trabajando)
- * @param {{nombre: string, estado: "hecho"|"actual"|"pendiente"|"error"}[]} [props.pasos]
- * @param {string} [props.className]  ej. padding horizontal para alinear con la página
+ * Franja de estado bajo el Navbar: qué está pasando AHORA, en una línea, con pasos del flujo.
+ * Usa la sub-paleta Borgoña/Vino (`#8C1D28` + `rose-*`) en reposo/proceso para evitar fatiga visual.
  */
 export default function FranjaEstado({ tono = "info", mensaje, detalle, ocupado, pasos = [], className = "" }) {
   const estilo = TONOS[tono] || TONOS.info;
@@ -25,24 +32,27 @@ export default function FranjaEstado({ tono = "info", mensaje, detalle, ocupado,
     <section
       role={tono === "error" ? "alert" : "status"}
       aria-live={tono === "error" ? "assertive" : "polite"}
-      className={`flex flex-wrap items-center gap-x-6 gap-y-2 border-b-2 py-3.5 ${estilo.franja} ${className}`}
+      className={`flex flex-wrap items-center gap-x-6 gap-y-2 border-b py-3 ${estilo.franja} ${className}`}
     >
-      <p className={`flex min-w-0 flex-1 basis-80 items-center gap-2 text-[21px] font-bold leading-snug ${estilo.mensaje}`}>
+      <p className={`flex min-w-0 flex-1 basis-80 items-center gap-2 text-base sm:text-lg font-bold leading-snug ${estilo.mensaje}`}>
         {ocupado && (
-          <span aria-hidden="true" className="h-3 w-3 shrink-0 animate-pulso rounded-full bg-current motion-reduce:animate-none" />
+          <span
+            aria-hidden="true"
+            className="h-2.5 w-2.5 shrink-0 animate-pulso rounded-full bg-muni-primary motion-reduce:animate-none"
+          />
         )}
-        {!ocupado && estilo.icono && <Icono nombre={estilo.icono} className="h-6 w-6" grosor={3} />}
+        {!ocupado && estilo.icono && <Icono nombre={estilo.icono} className="h-5 w-5" grosor={2.6} />}
         <span className="min-w-0">
           {mensaje}
-          {detalle && <span className="font-medium text-texto"> {detalle}</span>}
+          {detalle && <span className="font-normal text-gray-700 dark:text-gray-300"> {detalle}</span>}
         </span>
       </p>
       {pasos.length > 0 && (
-        <ol aria-label="Progreso" className="flex flex-wrap items-center gap-2.5 text-[17px] text-texto2">
+        <ol aria-label="Progreso" className="flex flex-wrap items-center gap-2 text-xs sm:text-sm text-gray-600 dark:text-gray-300">
           {pasos.map((paso, i) => (
-            <li key={paso.nombre} className="flex items-center gap-2.5">
+            <li key={paso.nombre} className="flex items-center gap-2">
               {i > 0 && (
-                <span aria-hidden="true" className="text-texto3">
+                <span aria-hidden="true" className="text-gray-400">
                   →
                 </span>
               )}
@@ -58,23 +68,26 @@ export default function FranjaEstado({ tono = "info", mensaje, detalle, ocupado,
 function Paso({ paso, numero, ocupado }) {
   const { estado } = paso;
   const circulo = {
-    hecho: "border-ok bg-ok text-white",
-    actual: "border-acento bg-acento text-white",
-    error: "border-critico bg-critico text-white",
-    pendiente: "border-texto3 bg-superficie text-texto3",
+    hecho: "border-emerald-600 bg-emerald-600 text-white",
+    actual: "border-muni-primary-a11y bg-muni-primary-a11y text-white shadow-xs",
+    error: "border-red-700 bg-red-700 text-white",
+    pendiente: "border-gray-300 bg-white text-gray-500 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-400",
   }[estado];
   return (
     <span
       aria-current={estado === "actual" ? "step" : undefined}
-      className={`flex items-center gap-2 ${estado === "actual" ? "font-bold text-texto" : ""} ${
-        estado === "error" ? "font-bold text-critico" : ""
-      }`}
+      className={`flex items-center gap-1.5 ${
+        estado === "actual" ? "font-bold text-gray-900 dark:text-white" : ""
+      } ${estado === "error" ? "font-bold text-red-800 dark:text-red-300" : ""}`}
     >
-      <span aria-hidden="true" className={`grid h-7 w-7 place-items-center rounded-full border-2 text-[15px] font-bold ${circulo}`}>
-        {estado === "hecho" && <Icono nombre="check" className="h-4 w-4" grosor={3.4} />}
+      <span
+        aria-hidden="true"
+        className={`grid h-6 w-6 place-items-center rounded-full border text-xs font-bold tabular-nums ${circulo}`}
+      >
+        {estado === "hecho" && <Icono nombre="check" className="h-3.5 w-3.5" grosor={3} />}
         {estado === "error" && "!"}
         {estado === "actual" && ocupado && (
-          <span className="h-3.5 w-3.5 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none" />
+          <span className="h-3 w-3 animate-spin rounded-full border-2 border-white/40 border-t-white motion-reduce:animate-none" />
         )}
         {((estado === "actual" && !ocupado) || estado === "pendiente") && numero}
       </span>

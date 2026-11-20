@@ -1,6 +1,6 @@
 # Zero Day — Hackatón Huawei INACAP 2026
 
-Base del equipo para construir un agente con IA en pocas horas: **FastAPI** (`backend/`) + **React, Vite y Tailwind** (`frontend/`) + **Postgres**, todo con Docker Compose. La IA corre en **Kostra** (`deepseek-v4.1-flash`) en modo `live`, o simulada en modo `mock`. Incluye un flujo de ejemplo (texto → JSON validado con evidencia verificada), streaming, manejo de errores, evaluación de calidad con casos, costo estimado por análisis y un kit de componentes.
+Base del equipo para construir un agente con IA en pocas horas: **FastAPI** (`backend/`) + **React, Vite y Tailwind** (`frontend/`) + **Postgres**, todo con Docker Compose. La IA corre en **Kostra** (`deepseek-v4.1-flash`) en modo `live`, o simulada en modo `mock`. Incluye un flujo de ejemplo (texto → JSON validado con evidencia verificada), streaming, manejo de errores, evaluación de calidad con casos, costo estimado por análisis y un kit de componentes. El sistema de diseño (tokens, clases y reglas, hoy el sistema municipal de Rancagua) vive en [`skills/design.skill`](./skills/design.skill).
 
 Reglas y guía para agentes: [AGENTS.md](./AGENTS.md) · Pitch según la rúbrica: [PITCH.md](./PITCH.md) · Servidor con Terraform: [infra/README.md](./infra/README.md)
 
