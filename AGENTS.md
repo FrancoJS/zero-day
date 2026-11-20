@@ -5,16 +5,18 @@ Pitch y rúbrica en detalle: [PITCH.md](./PITCH.md) · Arranque y servidor: [REA
 
 ---
 
-## 0. Desafío sorteado (completar en el kickoff, antes de pedir código)
+## 0. Desafío sorteado
 
-- **Desafío:** _(pendiente)_
-- **Usuario y momento del flujo:** _(pendiente)_
-- **Problema y consecuencia:** _(pendiente)_
-- **Parte concreta que resolvemos / qué queda fuera:** _(pendiente)_
-- **Entrada → procesamiento → resultado:** _(pendiente)_
-- **Dominio (para el prompt):** _(tema exacto; ver paso 2 de la sección 2)_
-- **Qué es real y qué es simulado:** _(pendiente)_
-- **Indicador de impacto (estimado vs observado):** _(pendiente)_
+- **Desafío:** Propuesta 1 – *O'Higgins Circular*: prototipo tecnológico que mejore algún aspecto de la gestión de residuos en Rancagua / Región de O'Higgins (reducir, reutilizar, clasificar, recuperar o gestionar). Exige: problema y usuarios claros, al menos **una funcionalidad demostrable**, y no limitarse a concientización. Se permiten **datos simulados**.
+- **Nuestro enfoque:** **reportes de microbasurales** para el municipio.
+- **Usuario y momento del flujo:** el **encargado municipal de aseo/medio ambiente**, cuando le llegan reportes de vecinos (texto libre, informal) y tiene que decidir qué atender primero y con qué recursos. Beneficiados: vecinos del sector.
+- **Problema y consecuencia:** _(dato por confirmar con mentores/partner: cómo llegan hoy los reportes y cuánto tardan en atenderse)_. Supuesto: llegan desordenados, repetidos y sin clasificar → se atiende por orden de llegada y no por riesgo; el microbasural crece.
+- **Parte concreta que resolvemos:** clasificar y priorizar cada reporte con evidencia citada, detectar reportes del mismo lugar y proponer el recurso a despachar, que el encargado **aprueba o rechaza**.
+- **Qué queda fuera:** app del vecino completa, mapa/GPS real, fotos, login, notificaciones, integración con sistemas municipales, ruteo de camiones.
+- **Entrada → procesamiento → resultado:** reporte en texto + sector → IA extrae tipo de residuo, peligrosidad, prioridad, acción sugerida, lo que falta saber y evidencia → código valida, verifica evidencia, agrupa por sector y guarda → bandeja priorizada + aprobación del despacho.
+- **Dominio (para el prompt):** residuos y microbasurales en espacios públicos de Rancagua (basura domiciliaria, escombros, voluminosos, poda, residuos peligrosos, quemas de basura). **Fuera de dominio** (luminarias, baches, ruidos, perros, etc.) → tipo `no_es_residuo` y acción `derivar`.
+- **Qué es real y qué es simulado:** real: análisis con Kostra LIVE, validación, evidencia verificada, agrupación por sector, guardado en BD. Simulado: los reportes de vecinos (de ejemplo), el sector (texto, sin GPS) y el **despacho** (solo se registra la aprobación).
+- **Indicador de impacto:** observado: segundos por reporte, aciertos en la evaluación por categoría, costo ≈ por análisis. Estimado (con supuesto explícito): tiempo de triage ahorrado al encargado y reportes duplicados detectados.
 
 ---
 

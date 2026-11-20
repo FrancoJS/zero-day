@@ -29,13 +29,15 @@ Regla de oro: cada afirmación tiene un respaldo que se puede mostrar. Lo estima
 
 ## 1. Relevancia del desafío (25%)
 
+**Enfoque elegido:** O'Higgins Circular → **triage de reportes de microbasurales** para el municipio de Rancagua.
+
 **Problema (qué falla hoy y qué consecuencia tiene para la operación):**
-> _Ej.: "Hoy el equipo de guardia revisa ~N alertas por noche a mano; la mayoría son ruido y el incidente real se detecta tarde, con X de consecuencia."_
+> _Completar con el dato de mentores/partner. Borrador: "Los reportes de microbasurales llegan como texto libre, repetidos y sin clasificar; se atienden por orden de llegada y no por riesgo, y mientras tanto el microbasural crece."_
 
 **Usuario y momento del flujo:**
-- Quién la usa: _(rol concreto)_
-- Quién se beneficia: _(rol / área)_
-- En qué momento interviene: _(paso exacto del proceso: "cuando llega…", "antes de…")_
+- Quién la usa: encargado municipal de aseo / medio ambiente
+- Quién se beneficia: vecinos del sector reportado
+- En qué momento interviene: cuando llega un reporte y hay que decidir qué atender primero y con qué recurso
 
 **Evidencia y contexto:** _(antecedentes del desafío, datos entregados, conversación con mentores/partner)_
 
