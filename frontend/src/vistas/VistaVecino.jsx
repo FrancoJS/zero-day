@@ -18,6 +18,15 @@ const PASO_MS = 250;
 
 const saludo = () => ({ id: 0, rol: "bot", contenido: SALUDO });
 
+// Reconoce el sector si el vecino lo escribe ("es en Rancagua Sur"): nombres más largos primero
+// (Suroriente antes que Oriente), sin tildes ni mayúsculas y con límites de palabra.
+const normalizar = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+export function detectarSector(texto, sectores) {
+  const limpio = ` ${normalizar(texto)} `;
+  const candidatos = [...sectores].sort((a, b) => b.nombre.length - a.nombre.length);
+  return candidatos.find((s) => new RegExp(`[^a-z]${normalizar(s.nombre)}[^a-z]`).test(limpio))?.id ?? null;
+}
+
 export default function VistaVecino() {
   const reducir = useReducedMotion();
   const idRef = useRef(1);
@@ -108,9 +117,11 @@ export default function VistaVecino() {
     };
   };
 
-  const analizar = async (lista, sid) => {
+  const analizar = async (lista, sidElegido) => {
     setChips(null);
     setEscribiendo(true);
+    const sid = sidElegido || detectarSector(lista.join(" "), sectores);
+    if (sid && !sidElegido) setSectorId(sid);
     try {
       const { datos, ejemplo: e } = await analizarBorrador(lista.join("\n"), sid, lista.length - 1);
       marcarEjemplo(e);
