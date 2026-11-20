@@ -110,18 +110,24 @@ def _resumir_error(error: ValidationError) -> str:
 # Están ajustadas para que casos.json pase en MOCK: eso prueba la plomería (flujo, validación, evaluador),
 # NO dice nada de la calidad de la IA. La calidad solo se mide con AI_MODE=live.
 
-PALABRAS_URGENTES = ("urgente", "caído", "caida", "no funciona", "emergencia", "bloqueado", "inmediato")
-PALABRAS_CATEGORIA = {  # se revisan en este orden; "consulta" también se activa con "?"
-    "incidente": ("error", "falla", "caído", "caida", "no funciona", "no anda", "bloqueado"),
-    "reclamo": ("reclamo", "molesto", "pésimo", "pesimo", "mal servicio"),
-    "solicitud": ("solicito", "necesito", "quisiera", "quiero"),
-    "consulta": ("?", "cómo", "como ", "cuándo", "consulta"),
+PALABRAS_TIPO = {  # se revisan en este orden: el primero que calza gana
+    "peligroso": ("aceite", "químic", "quimic", "batería", "bateria", "jeringa", "amianto", "pintura", "tóxic", "toxic"),
+    "escombros": ("escombro", "ladrillo", "cemento", "construcción", "construccion"),
+    "voluminoso": ("colchón", "colchon", "sillón", "sillon", "refrigerador", "mueble", "sofá", "sofa", "lavadora"),
+    "poda": ("rama", "poda", "pasto", "hojas"),
+    "domiciliario": ("basura", "bolsa", "desecho", "residuo", "microbasural", "cachureo", "mugre"),
 }
-# Una "consulta" sin ninguna de estas palabras se trata como fuera de dominio (ej. cultura general) -> "otro"
-PALABRAS_DOMINIO = (
-    "horario", "atención", "atencion", "sucursal", "cuenta", "pedido", "servicio", "pago", "cobr",
-    "sistema", "despacho", "compra", "producto", "factura",
-)
+# Riesgo -> prioridad alta (S2)
+PALABRAS_RIESGO = ("quema", "humo", "fuego", "colegio", "escuela", "canal", "consultorio", "cesfam", "bloquea", "tapa la calle")
+PALABRAS_VOLUMEN = ("cerro", "montón", "monton", "semana", "meses", "mucha", "camionada", "enorme")
+ACCION_POR_TIPO = {
+    "peligroso": "retiro_especializado",
+    "escombros": "camion_tolva",
+    "voluminoso": "camion_tolva",
+    "poda": "cuadrilla_estandar",
+    "domiciliario": "cuadrilla_estandar",
+    "no_es_residuo": "derivar",
+}
 PATRONES_SENSIBLES = r"\b\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\b|\+?56\s?9\s?\d{4}\s?\d{4}|\S+@\S+"
 
 
@@ -145,29 +151,36 @@ def evidencia_mock(texto: str, palabras: tuple[str, ...]) -> list[str]:
 
 def analisis_mock(texto: str) -> str:
     minusculas = texto.lower()
-    categoria = next(
-        (cat for cat, palabras in PALABRAS_CATEGORIA.items() if any(p in minusculas for p in palabras)),
-        "otro",
-    )
-    if categoria == "consulta" and not any(p in minusculas for p in PALABRAS_DOMINIO):
-        categoria = "otro"  # pregunta ajena al negocio
-    urgente = any(p in minusculas for p in PALABRAS_URGENTES)
-    prioridad = "alta" if urgente else ("media" if categoria in ("incidente", "reclamo") else "baja")
-    acciones = {
-        "incidente": "Derivar a soporte técnico y confirmar al usuario el tiempo estimado de solución.",
-        "reclamo": "Contactar al usuario, reconocer el problema y ofrecer una solución concreta.",
-        "solicitud": "Registrar la solicitud y asignarla al área responsable.",
-        "consulta": "Responder la consulta con la información disponible o derivar a quien corresponda.",
-        "otro": "Revisar manualmente el mensaje para decidir el siguiente paso.",
-    }
-    decisivas = PALABRAS_CATEGORIA.get(categoria, ()) + (PALABRAS_URGENTES if urgente else ())
+    encontrados = [t for t, palabras in PALABRAS_TIPO.items() if any(p in minusculas for p in palabras)]
+    if not encontrados:
+        tipo = "no_es_residuo"
+    elif len(encontrados) > 1 and "peligroso" not in encontrados:
+        tipo = "mixto"
+    else:
+        tipo = encontrados[0]
+    riesgo = tipo != "no_es_residuo" and any(p in minusculas for p in PALABRAS_RIESGO)
+    volumen = any(p in minusculas for p in PALABRAS_VOLUMEN)
+    if tipo == "no_es_residuo":
+        prioridad = "baja"
+    elif tipo == "peligroso" or riesgo:
+        prioridad = "alta"
+    else:
+        prioridad = "media" if volumen else "baja"
+    peligrosidad = "alta" if tipo == "peligroso" else ("media" if riesgo else "baja")
+    accion = "camion_tolva" if tipo == "mixto" else ACCION_POR_TIPO[tipo]
+    faltantes = [] if tipo == "no_es_residuo" or re.search(r"\d|esquina|calle|pasaje|avenida|av\.", minusculas) else ["ubicación exacta"]
+    if tipo != "no_es_residuo" and len(minusculas.split()) < 5:
+        accion, faltantes = "pedir_mas_datos", ["qué tipo de residuo", "ubicación exacta"]
+    decisivas = tuple(p for t in encontrados for p in PALABRAS_TIPO[t]) + (PALABRAS_RIESGO if riesgo else ())
     resumen = re.sub(PATRONES_SENSIBLES, "[dato oculto]", texto.strip())
     return json.dumps(
         {
-            "categoria": categoria,
+            "tipo_residuo": tipo,
+            "peligrosidad": peligrosidad,
             "prioridad": prioridad,
+            "accion_sugerida": accion,
             "resumen": (resumen[:180] + "…") if len(resumen) > 180 else resumen,
-            "accion_sugerida": acciones[categoria],
+            "falta_informacion": faltantes,
             "evidencia": evidencia_mock(texto, decisivas),
         },
         ensure_ascii=False,

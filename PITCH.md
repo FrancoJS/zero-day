@@ -32,10 +32,10 @@ Regla de oro: cada afirmación tiene un respaldo que se puede mostrar. Lo estima
 **Enfoque elegido:** O'Higgins Circular → **triage de reportes de microbasurales** para el municipio de Rancagua.
 
 **Problema (qué falla hoy y qué consecuencia tiene para la operación):**
-> _Completar con el dato de mentores/partner. Borrador: "Los reportes de microbasurales llegan como texto libre, repetidos y sin clasificar; se atienden por orden de llegada y no por riesgo, y mientras tanto el microbasural crece."_
+> Hoy la municipalidad **no tiene ningún sistema** para recibir, clasificar ni priorizar reportes de microbasurales (lo sabemos porque un integrante del equipo trabaja ahí). Sin registro, no se sabe qué es más urgente ni qué puntos se repiten, y el microbasural crece. _(Completar: por qué canal llegan hoy los avisos.)_
 
 **Usuario y momento del flujo:**
-- Quién la usa: encargado municipal de aseo / medio ambiente
+- Quién la usa: encargado del departamento de **Gestión de Calidad** de la Municipalidad de Rancagua
 - Quién se beneficia: vecinos del sector reportado
 - En qué momento interviene: cuando llega un reporte y hay que decidir qué atender primero y con qué recurso
 
