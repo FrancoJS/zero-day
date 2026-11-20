@@ -30,3 +30,4 @@ Rama: `feat/microbasurales`. El push y el merge los hace el usuario.
 - L1 (usuario): "si me parece bien lo de los microbasurales, esta perfecto, actualizas la documentacion y vemos el alcance ahora?"
 - L2 (decisiones): entrada = "Vista vecino + vista encargado"; mapa = "Eso tambien lo queremos definir, lo ideal seria que si" → luego "Leaflet + OpenStreetMap (Recom.)"; duplicados = "Sí, por sector exacto (Recom.)".
 - L3 (usuario): "justo uno de nosotros trabaja en la municipalidad asi que sabemos que hoy no hay nada de eso, y el lugar donde se ve todo lo de desechos es gestion de calidad" · roles: "yo veo infra, uno backend y otro front y se revisan los prs en la otra sesion" · T2 = compañero de backend. Diseño posterior: adaptar estilos (tokens de tailwind.config.js) a la web de la municipalidad.
+- L5 (diseño): design/microbasurales/ con 01-vecino-reporte, 02-encargado-bandeja, 03-encargado-mapa
