@@ -1,8 +1,12 @@
-# Contrato de la API de reportes (S9)
+# Contrato de la API de reportes (S9) — v2
 
 Fuente única para backend (T2) y frontend (T4, T5). Si hay que cambiarlo, se cambia **aquí primero** con acuerdo de los dos.
 Todo lo que no está aquí (`/api/health`, `/api/ia/*`, `/api/historial`, `/api/evaluacion`) sigue igual.
 Errores: siempre `{"codigo": "...", "mensaje": "..."}` en español, como el resto de la API.
+
+**Código fuente del contrato:** los modelos Pydantic están en `backend/esquemas.py` (sección "Contrato de la API de reportes": `Sector`, `SolicitudBorrador`, `RespuestaBorrador`, `SolicitudReporte`, `Reporte`, `RespuestaBandeja`, `SolicitudDecision`…) y el catálogo en `backend/sectores.py`. El backend los usa como `response_model`; el frontend usa la misma forma en `frontend/src/datosEjemplo.js`.
+
+**v2 (diseño 04 y 03):** `ResultadoAnalisis` suma `ubicacion` y `pregunta_seguimiento`; nuevo `POST /api/reportes/borrador` para el chat del vecino; el mapa del encargado es Leaflet + OpenStreetMap con `lat`/`lng` de `por_sector`.
 
 ## Datos
 
@@ -43,6 +47,8 @@ Catálogo inicial (el backend puede ajustar coordenadas, no los `id`):
       "accion_sugerida": "camion_tolva",
       "resumen": "Escombros y colchón junto a un colegio; obliga a los niños a pasar por la calle.",
       "falta_informacion": ["volumen aproximado"],
+      "ubicacion": "pasaje Los Aromos con Av. España",
+      "pregunta_seguimiento": "¿Cabe en una camioneta o se necesita un camión?",
       "evidencia": ["junto al colegio", "los cabros tienen que pasar por la calle"]
     },
     "modo": "live",
@@ -52,7 +58,7 @@ Catálogo inicial (el backend puede ajustar coordenadas, no los `id`):
   }
 }
 ```
-- `resultado` es exactamente `ResultadoAnalisis` de `backend/esquemas.py`.
+- `resultado` es exactamente `ResultadoAnalisis` de `backend/esquemas.py`. `ubicacion` y `pregunta_seguimiento` pueden ser `null`.
 - `texto` se guarda **con RUT, teléfonos y correos reemplazados por `[dato oculto]`** (mismo patrón `PATRONES_SENSIBLES` de `analisis.py`). El análisis se hace sobre el texto original; la evidencia ya excluye datos personales, así que se puede resaltar en el texto guardado.
 - `estado`: `pendiente` · `aprobado` · `rechazado`. `decidido_en` y `nota_decision` son `null` mientras está pendiente.
 - `reportes_en_sector`: cuántos reportes **pendientes** hay en el mismo sector (coincidencia exacta de `sector.id`), incluido este.
@@ -63,8 +69,16 @@ Catálogo inicial (el backend puede ajustar coordenadas, no los `id`):
 ### `GET /api/sectores` → `200`
 `{ "sectores": [Sector, …] }`
 
-### `POST /api/reportes` (vista vecino)
-Cuerpo: `{ "texto": "…", "sector_id": "centro" }` (`texto` 1–4000 caracteres, como `/api/ia/analizar`).
+### `POST /api/reportes/borrador` (chat del vecino — analiza **sin guardar**)
+Cuerpo: `{ "texto": "…", "sector_id": "sur" | null }`. `texto` = todo lo que escribió el vecino en el chat, en orden, unido con saltos de línea (mensaje inicial + cada respuesta). No hay memoria en el servidor: cada turno manda el texto acumulado.
+- `200` → `{ "analisis": RespuestaAnalisis, "completo": bool }` (`RespuestaAnalisis` = la misma de `/api/ia/analizar`).
+- `completo` = `sector_id` válido **y** `falta_informacion` vacía. El frontend habilita "Enviar a Gestión de Calidad" solo si es `true` (o si el vecino ya respondió 2 preguntas: no se le pregunta más de 2 veces).
+- La burbuja del asistente muestra `resumen` y, si existe, `pregunta_seguimiento`. Si no hay sector, el frontend pregunta el sector con botones (los 8 del catálogo), sin llamar a la IA.
+- `422` `{"codigo": "sector_invalido"}` si `sector_id` no es `null` y no existe. Errores de la IA iguales a `/api/ia/analizar`.
+- El panel "Tu reporte" se llena **en vivo** en el frontend: al llegar la respuesta muestra los campos uno por uno (≈250 ms cada uno, sin animación con `prefers-reduced-motion`).
+
+### `POST /api/reportes` (vista vecino: envío final)
+Cuerpo: `{ "texto": "…", "sector_id": "centro" }` (`texto` = el mismo texto acumulado del chat, 1–4000 caracteres). Se **vuelve a analizar** en el servidor (nunca se confía en el análisis que trae el cliente).
 - `201` → `Reporte` (ya analizado y guardado).
 - `422` `{"codigo": "sector_invalido"}` si el sector no existe; `422` normal si falta el texto.
 - Errores de la IA: los mismos códigos y estados que `/api/ia/analizar` (`key_invalida`, `saldo_agotado`, `limite_alcanzado`, `timeout`…). **No se guarda** un reporte sin análisis.
@@ -82,7 +96,7 @@ Ambos parámetros son opcionales (`estado` por defecto: todos). Límite: 100 rep
 }
 ```
 - Orden de `reportes`: `pendiente` primero; dentro, prioridad `alta` → `media` → `baja`; a igual prioridad, el **más antiguo** primero (lleva más tiempo esperando).
-- `por_sector`: solo sectores con al menos un reporte; `prioridad_max` se calcula sobre los **pendientes** (`null` si no hay pendientes). Es lo que usa el mapa (S6).
+- `por_sector`: solo sectores con al menos un reporte; `prioridad_max` se calcula sobre los **pendientes** (`null` si no hay pendientes). Es lo que usa el mapa (S6): Leaflet + OpenStreetMap, un marcador por sector en `lat`/`lng` (color por `prioridad_max`, número = `pendientes`); clic = filtrar con `sector_id`. Si los tiles no cargan (sin internet), se muestra la lista por sector con un aviso.
 - `503` `{"codigo": "bd_no_disponible"}` si la BD falla.
 
 ### `POST /api/reportes/{id}/decision` (aprobar o rechazar el despacho — **simulado**)

@@ -13,7 +13,7 @@ Rama: `feat/microbasurales`. El push y el merge los hace el usuario.
 - **S6 — Mapa (después del checkpoint 11:45).** Leaflet + OpenStreetMap (sin `react-leaflet`), un marcador por sector: color = prioridad más alta, número = reportes; clic filtra la bandeja; si no carga, lista por sector con aviso. Si a las 12:30 no está, se queda la lista.
 - **S7 — Evaluación.** `casos.json` con reportes de microbasurales conservando las categorías `normal, ambiguo, inyeccion, fuera_de_dominio, datos_sensibles, informal`; corrida live para el panel.
 - **S8 — Servidor.** App en la IP pública de Huawei Cloud (bloqueado hasta tener acceso).
-- **S9 — Contrato de la API de reportes.** Definido en `odd/contrato-api.md` (sectores, reportes, bandeja con `por_sector`, decisión simulada, semilla). Backend y frontend lo siguen tal cual; un cambio se hace ahí primero.
+- **S9 — Contrato de la API de reportes (v2).** Definido en `odd/contrato-api.md`, modelos en `backend/esquemas.py`, catálogo en `backend/sectores.py`, ejemplos en `frontend/src/datosEjemplo.js`; v2 suma `ubicacion`, `pregunta_seguimiento` y `POST /api/reportes/borrador` (chat) (sectores, reportes, bandeja con `por_sector`, decisión simulada, semilla). Backend y frontend lo siguen tal cual; un cambio se hace ahí primero.
 
 ## Tasks
 
@@ -32,3 +32,4 @@ Rama: `feat/microbasurales`. El push y el merge los hace el usuario.
 - L2 (decisiones): entrada = "Vista vecino + vista encargado"; mapa = "Eso tambien lo queremos definir, lo ideal seria que si" → luego "Leaflet + OpenStreetMap (Recom.)"; duplicados = "Sí, por sector exacto (Recom.)".
 - L3 (usuario): "justo uno de nosotros trabaja en la municipalidad asi que sabemos que hoy no hay nada de eso, y el lugar donde se ve todo lo de desechos es gestion de calidad" · roles: "yo veo infra, uno backend y otro front y se revisan los prs en la otra sesion" · T2 = compañero de backend. Diseño posterior: adaptar estilos (tokens de tailwind.config.js) a la web de la municipalidad.
 - L4 (usuario): "si dejalo definida ahora y haces un pr pequeño asi despues partimso  con eso" → contrato en `odd/contrato-api.md`.
+- L8 (usuario): "Aun no empieza el backend pero necesito poder definir los esquemas y todo lo necesario para que despues se junten nomas" · mapa de la app: "Leaflet + OpenStreetMap" → contrato v2 + esquemas + sectores.py + datosEjemplo.js + api.js (61 pruebas OK, mock 8/8).

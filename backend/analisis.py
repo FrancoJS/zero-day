@@ -171,6 +171,11 @@ def analisis_mock(texto: str) -> str:
     faltantes = [] if tipo == "no_es_residuo" or re.search(r"\d|esquina|calle|pasaje|avenida|av\.", minusculas) else ["ubicación exacta"]
     if tipo != "no_es_residuo" and len(minusculas.split()) < 5:
         accion, faltantes = "pedir_mas_datos", ["qué tipo de residuo", "ubicación exacta"]
+    lugar = re.search(r"((?:en|frente a|al lado de|junto a) (?:la |el )?(?:esquina|pasaje|calle|avenida|av\.|plaza|vereda|canal|sitio)[^,.;]{0,80})", texto, re.IGNORECASE)
+    ubicacion = lugar.group(1).strip() if lugar and not re.search(PATRONES_SENSIBLES, lugar.group(1)) else None
+    preguntas = {"ubicación exacta": "¿En qué calle o esquina está, o qué hay cerca como referencia?",
+                 "qué tipo de residuo": "¿Qué tipo de basura es? Por ejemplo escombros, muebles, ramas o bolsas."}
+    pregunta = preguntas.get(faltantes[0], f"¿Nos puedes contar {faltantes[0]}?") if faltantes else None
     decisivas = tuple(p for t in encontrados for p in PALABRAS_TIPO[t]) + (PALABRAS_RIESGO if riesgo else ())
     resumen = re.sub(PATRONES_SENSIBLES, "[dato oculto]", texto.strip())
     return json.dumps(
@@ -181,6 +186,8 @@ def analisis_mock(texto: str) -> str:
             "accion_sugerida": accion,
             "resumen": (resumen[:180] + "…") if len(resumen) > 180 else resumen,
             "falta_informacion": faltantes,
+            "ubicacion": ubicacion,
+            "pregunta_seguimiento": pregunta,
             "evidencia": evidencia_mock(texto, decisivas),
         },
         ensure_ascii=False,
