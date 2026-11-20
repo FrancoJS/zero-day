@@ -7,8 +7,9 @@ import time
 from pydantic import ValidationError
 
 import kostra
-from esquemas import RespuestaAnalisis, ResultadoAnalisis, Uso
+from esquemas import RespuestaAnalisis, RespuestaBorrador, ResultadoAnalisis, Uso
 from prompts import PLANTILLA_TEXTO_USUARIO, PROMPT_ANALISIS, PROMPT_REINTENTO, PROMPT_STREAM
+from sectores import buscar_sector
 
 
 def extraer_json(texto: str) -> str:
@@ -89,6 +90,18 @@ async def analizar_texto(texto: str) -> RespuestaAnalisis:
         ),
         evidencia_descartada=descartados,
     )
+
+
+async def analizar_borrador(texto: str, sector_id: str | None) -> RespuestaBorrador:
+    """Chat del vecino (odd/contrato-api.md): analiza SIN guardar.
+
+    `completo` = sector elegido y sin información faltante: el frontend habilita "Enviar".
+    No hay memoria en el servidor: cada turno manda el texto acumulado.
+    """
+    if sector_id is not None and buscar_sector(sector_id) is None:
+        raise kostra.ErrorKostra("sector_invalido", "El sector elegido no existe. Vuelve a elegirlo de la lista.", 422)
+    respuesta = await analizar_texto(texto)
+    return RespuestaBorrador(analisis=respuesta, completo=sector_id is not None and not respuesta.resultado.falta_informacion)
 
 
 async def responder_stream(texto: str):

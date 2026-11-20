@@ -18,8 +18,15 @@ from fastapi.responses import JSONResponse, StreamingResponse  # noqa: E402
 import bd  # noqa: E402
 import kostra  # noqa: E402
 import modelos  # noqa: E402
-from analisis import analizar_texto, responder_stream  # noqa: E402
-from esquemas import RegistroHistorial, RespuestaAnalisis, RespuestaHistorial, SolicitudTexto  # noqa: E402
+from analisis import analizar_borrador, analizar_texto, responder_stream  # noqa: E402
+from esquemas import (  # noqa: E402
+    RegistroHistorial,
+    RespuestaAnalisis,
+    RespuestaBorrador,
+    RespuestaHistorial,
+    SolicitudBorrador,
+    SolicitudTexto,
+)
 
 registro = logging.getLogger("zeroday.api")
 
@@ -117,6 +124,12 @@ def evaluacion() -> dict:
 
 def _evento_sse(evento: str, datos: dict) -> str:
     return f"event: {evento}\ndata: {json.dumps(datos, ensure_ascii=False)}\n\n"
+
+
+@api.post("/reportes/borrador", response_model=RespuestaBorrador)
+async def borrador(solicitud: SolicitudBorrador) -> RespuestaBorrador:
+    """Chat del vecino: analiza SIN guardar (odd/contrato-api.md). `completo` habilita "Enviar"."""
+    return await analizar_borrador(solicitud.texto, solicitud.sector_id)
 
 
 @api.post("/ia/stream")
