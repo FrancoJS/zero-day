@@ -13,14 +13,15 @@ Rama: `feat/microbasurales`. El push y el merge los hace el usuario.
 - **S6 — Mapa (después del checkpoint 11:45).** Leaflet + OpenStreetMap (sin `react-leaflet`), un marcador por sector: color = prioridad más alta, número = reportes; clic filtra la bandeja; si no carga, lista por sector con aviso. Si a las 12:30 no está, se queda la lista.
 - **S7 — Evaluación.** `casos.json` con reportes de microbasurales conservando las categorías `normal, ambiguo, inyeccion, fuera_de_dominio, datos_sensibles, informal`; corrida live para el panel.
 - **S8 — Servidor.** App en la IP pública de Huawei Cloud (bloqueado hasta tener acceso).
+- **S9 — Contrato de la API de reportes.** Definido en `odd/contrato-api.md` (sectores, reportes, bandeja con `por_sector`, decisión simulada, semilla). Backend y frontend lo siguen tal cual; un cambio se hace ahí primero.
 
 ## Tasks
 
 - [x] T1 — S1, S2: esquema, prompt y `analisis_mock` · inline (parent) · commit ver log
-- [ ] T2 — S3, S4, S5 backend: sectores, tabla de reportes, endpoints de reporte/bandeja/decisión · compañero de backend (PR, revisado en otra sesión)
+- [ ] T2 — S3, S4, S5, S9 backend: sectores, tabla de reportes, endpoints de reporte/bandeja/decisión · compañero de backend (PR, revisado en otra sesión)
 - [x] T3 — S7 + pruebas al esquema nuevo · worker revisado por parent · 54 OK, mock 8/8 · commit ver log
-- [ ] T4 — S4 frontend vista vecino · compañero de frontend
-- [ ] T5 — S5 frontend vista encargado · compañero de frontend
+- [ ] T4 — S4, S9 frontend vista vecino · compañero de frontend
+- [ ] T5 — S5, S9 frontend vista encargado · compañero de frontend
 - [ ] T6 — S8 servidor Huawei · bloqueado (sin acceso)
 - [ ] T7 — S6 mapa Leaflet · después de 11:45
 - [ ] T8 — evaluación live final + `PITCH.md`
@@ -30,3 +31,4 @@ Rama: `feat/microbasurales`. El push y el merge los hace el usuario.
 - L1 (usuario): "si me parece bien lo de los microbasurales, esta perfecto, actualizas la documentacion y vemos el alcance ahora?"
 - L2 (decisiones): entrada = "Vista vecino + vista encargado"; mapa = "Eso tambien lo queremos definir, lo ideal seria que si" → luego "Leaflet + OpenStreetMap (Recom.)"; duplicados = "Sí, por sector exacto (Recom.)".
 - L3 (usuario): "justo uno de nosotros trabaja en la municipalidad asi que sabemos que hoy no hay nada de eso, y el lugar donde se ve todo lo de desechos es gestion de calidad" · roles: "yo veo infra, uno backend y otro front y se revisan los prs en la otra sesion" · T2 = compañero de backend. Diseño posterior: adaptar estilos (tokens de tailwind.config.js) a la web de la municipalidad.
+- L4 (usuario): "si dejalo definida ahora y haces un pr pequeño asi despues partimso  con eso" → contrato en `odd/contrato-api.md`.
