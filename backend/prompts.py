@@ -16,8 +16,10 @@ Responde SOLO con un objeto JSON válido, sin texto extra ni bloques de código,
 - "accion_sugerida": una de "cuadrilla_estandar" (poco volumen), "camion_tolva" (escombros o gran volumen), "retiro_especializado" (peligrosos), "fiscalizacion" (se ve a alguien botando o es recurrente), "derivar", "pedir_mas_datos"
 - "resumen": una frase en español para el encargado (máximo 200 caracteres)
 - "falta_informacion": lista de 0 a 3 datos que faltan para atenderlo (ej. "ubicación exacta", "volumen aproximado")
+- "ubicacion": la calle, esquina o referencia del lugar tal como la dice el reporte (máximo 120 caracteres), o null si no la dice
+- "pregunta_seguimiento": si falta información, UNA pregunta corta y amable al vecino, tratándolo de tú, sobre el dato más importante que falta (ej. "¿Cabe en una camioneta o se necesita un camión?"); null si no falta nada
 - "evidencia": lista de 1 a 3 fragmentos copiados EXACTAMENTE del reporte (sin cambiar ni una letra, máximo 200 caracteres cada uno) que justifiquen el tipo y la prioridad. Lista vacía si no hay ninguno.
-No incluyas datos personales (RUT, teléfonos, correos, nombres) en el resumen, los faltantes ni la evidencia."""
+No incluyas datos personales (RUT, teléfonos, correos, nombres) en el resumen, los faltantes, la ubicación, la pregunta ni la evidencia."""
 
 PROMPT_REINTENTO = (
     "Tu respuesta anterior no cumplió el formato ({error}). "
