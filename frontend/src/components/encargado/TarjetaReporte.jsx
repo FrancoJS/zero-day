@@ -46,9 +46,6 @@ export default function TarjetaReporte({ reporte, expandido, alExpandir, decisio
     <>
       <div className="flex items-center gap-2">
         <InsigniaPrioridad prioridad={r.prioridad} />
-        {reporte.simulado && (
-          <span className="rounded-md border border-gray-300 bg-gray-100 px-2 py-0.5 text-xs font-bold tracking-wide text-gray-700">SIMULADO</span>
-        )}
         <span className="ml-auto text-sm text-gray-600">{haceCuanto(reporte.creado_en)}</span>
       </div>
       <h3 className="mt-2 text-base font-bold text-gray-900">{TIPO_RESIDUO[r.tipo_residuo] || r.tipo_residuo}</h3>
@@ -130,7 +127,7 @@ export default function TarjetaReporte({ reporte, expandido, alExpandir, decisio
           </div>
           <p className="mt-3 flex items-center gap-2 text-sm text-gray-600">
             <Lock aria-hidden="true" className="h-4 w-4" />
-            Nada se ejecuta sin tu aprobación · despacho simulado
+            Nada se ejecuta sin tu aprobación (despacho simulado)
           </p>
         </div>
       ) : (

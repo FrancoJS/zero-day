@@ -1,5 +1,5 @@
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { ArrowDown, Check, CircleCheckBig, CircleHelp, Clock, Database, Info, Send, TriangleAlert } from "lucide-react";
+import { ArrowDown, Check, CircleCheckBig, CircleHelp, Clock, Info, Send, TriangleAlert } from "lucide-react";
 import { TIPO_RESIDUO, mayuscula } from "./textos";
 
 const FOCO = "focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2";
@@ -16,15 +16,6 @@ export function InsigniaUrgencia({ prioridad }) {
     <span className={`inline-flex items-center gap-1.5 rounded-full border px-2.5 py-0.5 text-sm font-bold ${u.clase}`}>
       <u.Icono aria-hidden="true" className="h-3.5 w-3.5" strokeWidth={2.4} />
       {u.texto}
-    </span>
-  );
-}
-
-export function InsigniaEjemplo() {
-  return (
-    <span className="inline-flex items-center gap-1.5 rounded-full border border-blue-200 bg-blue-50 px-2.5 py-0.5 text-xs font-semibold text-blue-800">
-      <Database aria-hidden="true" className="h-3.5 w-3.5" />
-      Datos de ejemplo (backend pendiente)
     </span>
   );
 }
@@ -104,13 +95,11 @@ function Marcador() {
 /**
  * Panel "Tu reporte" (se llena en vivo).
  * @param {{filas: any[], esperados: number, visibles: number, listos: number, total: number, completo: boolean,
- *   puedeEnviar: boolean, faltan: number, noEsResiduo: boolean, enviando: boolean, modo: string|null,
- *   ejemplo: boolean, alEnviar: () => void}} props
+ *   puedeEnviar: boolean, faltan: number, noEsResiduo: boolean, enviando: boolean, alEnviar: () => void}} props
  */
-export default function PanelReporte({ filas, esperados, visibles, listos, total, completo, puedeEnviar, faltan, noEsResiduo, enviando, modo, ejemplo, alEnviar }) {
+export default function PanelReporte({ filas, esperados, visibles, listos, total, completo, puedeEnviar, faltan, noEsResiduo, enviando, alEnviar }) {
   const reducir = useReducedMotion();
   const huecos = Math.max(0, esperados - Math.min(visibles, filas.length));
-  const motor = ejemplo ? "con datos de ejemplo" : modo === "live" ? "analizado con Kostra LIVE" : modo ? "analizado en modo MOCK" : "aún sin analizar";
 
   let etiquetaBoton = "Enviar a Gestión de Calidad";
   if (enviando) etiquetaBoton = "Enviando…";
@@ -141,8 +130,7 @@ export default function PanelReporte({ filas, esperados, visibles, listos, total
           transition={reducir ? { duration: 0 } : { duration: 0.4 }}
         />
       </div>
-      <p className="-mt-1.5 text-sm text-gray-600">Se llena en vivo mientras conversas · {motor}</p>
-      {ejemplo && <div className="-mt-1.5"><InsigniaEjemplo /></div>}
+      <p className="-mt-1.5 text-sm text-gray-600">Se completa mientras conversas</p>
 
       <ul className="mt-1 flex flex-col gap-2.5">
         <AnimatePresence initial={false}>
@@ -179,7 +167,7 @@ export default function PanelReporte({ filas, esperados, visibles, listos, total
       </button>
       <p className="mt-auto flex items-start gap-2 text-sm text-gray-600">
         <Info aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
-        Lo revisa una persona del municipio antes de enviar el equipo de retiro (despacho simulado en este prototipo).
+        Una persona del municipio lo revisa antes de enviar el retiro (despacho simulado).
       </p>
     </aside>
   );

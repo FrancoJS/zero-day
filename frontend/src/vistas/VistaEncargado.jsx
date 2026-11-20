@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { motion, useReducedMotion } from "framer-motion";
-import { Inbox, MapPin } from "lucide-react";
+import { AlertTriangle, CircleCheck, Clock, Inbox, Info, MapPin } from "lucide-react";
 import { cargarBandeja, decidirReporte } from "../fuente";
 import MensajeError from "../components/MensajeError";
 import MapaSectores from "../components/encargado/MapaSectores";
@@ -68,6 +68,12 @@ export default function VistaEncargado() {
   const abiertoEfectivo = visibles.some((r) => r.id === abierto) ? abierto : visibles[0]?.id;
 
   const altas = pendientes.filter((r) => prioridadDe(r) === "alta").length;
+  const aprobados = Object.values(decisiones).filter((d) => d.estado === "aprobado").length;
+  const nota = ejemplo
+    ? "Datos de ejemplo: el backend de reportes aún no está conectado"
+    : reportes.some((r) => r.simulado)
+      ? "Reportes de ejemplo simulados para la demo · despacho simulado"
+      : null;
   const masAntiguo = pendientes.reduce((min, r) => (!min || r.creado_en < min ? r.creado_en : min), null);
 
   async function decidir(id, decision) {
@@ -97,27 +103,13 @@ export default function VistaEncargado() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="border-b border-gray-200 bg-white">
-        <div className="container flex items-center gap-3 py-3 text-base">
-        <Inbox aria-hidden="true" className="h-5 w-5 text-gray-700" />
-        <span className="font-semibold tabular-nums">{pendientes.length} reportes pendientes</span>
-        <span className="text-gray-300" aria-hidden="true">·</span>
-        <span className="font-semibold tabular-nums text-muni-primary-a11y">{altas} de prioridad alta</span>
-        {masAntiguo && (
-          <>
-            <span className="text-gray-300" aria-hidden="true">·</span>
-            <span className="text-gray-700">el más antiguo espera <b className="font-semibold text-gray-900">{espera(masAntiguo)}</b></span>
-          </>
-        )}
-        {ejemplo && (
-          <span className="ml-auto rounded-full border border-adv-borde bg-adv-fondo px-3 py-1 text-sm font-semibold text-adv">
-            Datos de ejemplo (backend pendiente)
-          </span>
-        )}
+      <div className="container grid shrink-0 grid-cols-4 gap-4 pt-4">
+        <Kpi etiqueta="Pendientes" valor={pendientes.length} Icono={Inbox} />
+        <Kpi etiqueta="Prioridad alta" valor={altas} Icono={AlertTriangle} tono="text-critico" />
+        <Kpi etiqueta="Espera más larga" valor={masAntiguo ? espera(masAntiguo) : "—"} Icono={Clock} />
+        <Kpi etiqueta="Despachos aprobados" valor={aprobados} Icono={CircleCheck} />
       </div>
-
-        </div>
-      <div className="container grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-5 py-6">
+      <div className="container grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-5 py-4">
         <section className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900">Reportes pendientes por sector</h2>
           <p className="mb-3 text-sm text-gray-600">Toca un marcador para ver los reportes de ese sector.</p>
@@ -169,6 +161,24 @@ export default function VistaEncargado() {
           )}
         </section>
       </div>
+      {nota && (
+        <p className="container flex shrink-0 items-center gap-2 pb-3 text-sm text-gray-500">
+          <Info aria-hidden="true" className="h-4 w-4" />
+          {nota}
+        </p>
+      )}
+    </div>
+  );
+}
+
+function Kpi({ etiqueta, valor, Icono, tono = "text-gray-900" }) {
+  return (
+    <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
+      <div>
+        <p className="text-sm text-gray-600">{etiqueta}</p>
+        <p className={`text-3xl font-bold tabular-nums leading-tight ${tono}`}>{valor}</p>
+      </div>
+      <Icono aria-hidden="true" className={`h-6 w-6 ${tono === "text-gray-900" ? "text-gray-400" : tono}`} />
     </div>
   );
 }

@@ -15,6 +15,23 @@ const GLIFO = {
   baja: '<path d="M12 5v14"/><path d="m19 12-7 7-7-7"/>',
 };
 
+// "Mapa de calor" por sector: zona semitransparente bajo cada marcador (sin plugin).
+const RADIO_ZONA_M = 800; // los sectores vecinos están a ~1,8–2 km: casi no se superponen
+const COLOR_ZONA = { alta: "#991B1B", media: "#92400E", baja: "#6B7280" };
+const COLOR_SIN_PENDIENTES = "#9CA3AF";
+
+function estiloZona(s, seleccionado) {
+  const color = s.pendientes ? COLOR_ZONA[s.prioridad_max] || COLOR_ZONA.baja : COLOR_SIN_PENDIENTES;
+  return {
+    radius: RADIO_ZONA_M,
+    color: seleccionado ? "#AE0101" : color,
+    weight: seleccionado ? 3 : 1.5,
+    opacity: seleccionado ? 0.9 : 0.5,
+    fillColor: color,
+    fillOpacity: s.pendientes ? 0.12 + 0.12 * Math.min(s.pendientes, 4) : 0.08,
+  };
+}
+
 function iconoSector(s, seleccionado) {
   if (!s.pendientes) {
     return L.divIcon({
@@ -86,6 +103,11 @@ export default function MapaSectores({ sectores, seleccionado, alSeleccionar }) 
     if (!grupo) return;
     grupo.clearLayers();
     sectores.forEach((s) => {
+      const zona = L.circle([s.lat, s.lng], { ...estiloZona(s, s.sector_id === seleccionado), interactive: Boolean(s.pendientes) });
+      if (s.pendientes) zona.on("click", () => alSel.current(s.sector_id));
+      zona.addTo(grupo);
+    });
+    sectores.forEach((s) => {
       const marcador = L.marker([s.lat, s.lng], {
         icon: iconoSector(s, s.sector_id === seleccionado),
         keyboard: true,
@@ -148,6 +170,7 @@ export default function MapaSectores({ sectores, seleccionado, alSeleccionar }) 
         <li className="flex items-center gap-2"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-600 text-white"><ArrowDown aria-hidden="true" className="h-3.5 w-3.5" /></span>Solo baja</li>
         <li className="flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full bg-gray-600/60" />Sin pendientes</li>
         <li>Número = reportes pendientes</li>
+        <li className="flex items-center gap-2"><span className="inline-block h-4 w-4 rounded-full border border-critico/50 bg-critico/30" />Intensidad = cantidad de reportes pendientes</li>
       </ul>
       <p className="flex items-center gap-2 text-sm text-gray-600">
         <Info aria-hidden="true" className="h-4 w-4" />

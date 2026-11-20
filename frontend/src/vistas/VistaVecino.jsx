@@ -1,5 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { useReducedMotion } from "framer-motion";
+import { Info } from "lucide-react";
 import { analizarBorrador, cargarSectores, enviarReporte } from "../fuente";
 import ChatAsistente from "../components/vecino/ChatAsistente";
 import PanelReporte, { filasDelReporte } from "../components/vecino/PanelReporte";
@@ -210,8 +211,15 @@ export default function VistaVecino() {
   else if (chips?.tipo === "volumen") listaChips = RESPUESTAS_VOLUMEN.map((t) => ({ texto: t, alElegir: () => enviarTexto(t) }));
   else if (chips?.tipo === "reintentar") listaChips = [{ texto: "Reintentar", reintentar: true, alElegir: reintentar }];
 
+  const nota = ejemplo
+    ? "Datos de ejemplo: el backend de reportes aún no está conectado"
+    : reporte?.simulado
+      ? "Reportes de ejemplo simulados para la demo · despacho simulado"
+      : null;
+
   return (
-    <div className="container grid h-full min-h-0 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-6 pb-6 pt-5">
+    <div className="container flex h-full min-h-0 flex-col gap-3 pb-4 pt-5">
+    <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-6">
       <ChatAsistente
         mensajes={mensajes}
         chips={listaChips}
@@ -220,7 +228,7 @@ export default function VistaVecino() {
         alEnviar={(t) => enviarTexto(t)}
       />
       {reporte ? (
-        <ExitoReporte reporte={reporte} ejemplo={ejemplo} alReiniciar={reiniciar} />
+        <ExitoReporte reporte={reporte} alReiniciar={reiniciar} />
       ) : (
         <PanelReporte
           filas={filas}
@@ -233,10 +241,15 @@ export default function VistaVecino() {
           faltan={Math.max(1, total - listos)}
           noEsResiduo={noEsResiduo}
           enviando={enviando}
-          modo={modo}
-          ejemplo={ejemplo}
           alEnviar={enviarFinal}
         />
+      )}
+    </div>
+      {nota && (
+        <p className="flex shrink-0 items-center gap-2 text-sm text-gray-500">
+          <Info aria-hidden="true" className="h-4 w-4" />
+          {nota}
+        </p>
       )}
     </div>
   );

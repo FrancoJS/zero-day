@@ -1,6 +1,6 @@
 import { motion, useReducedMotion } from "framer-motion";
 import { Check, CircleCheckBig, RotateCcw } from "lucide-react";
-import { InsigniaEjemplo, InsigniaUrgencia } from "./PanelReporte";
+import { InsigniaUrgencia } from "./PanelReporte";
 import { TIPO_RESIDUO } from "./textos";
 
 const FOCO = "focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2";
@@ -15,7 +15,7 @@ function Dato({ etiqueta, children }) {
 }
 
 /** Estado final tras POST /api/reportes (artboard 01, columna derecha). */
-export default function ExitoReporte({ reporte, ejemplo, alReiniciar }) {
+export default function ExitoReporte({ reporte, alReiniciar }) {
   const reducir = useReducedMotion();
   const r = reporte.analisis?.resultado || {};
   const otros = Math.max(0, (reporte.reportes_en_sector || 1) - 1);
@@ -28,7 +28,6 @@ export default function ExitoReporte({ reporte, ejemplo, alReiniciar }) {
       animate={{ opacity: 1, y: 0 }}
       className="flex min-h-0 flex-col gap-3.5 overflow-auto rounded-xl border border-gray-200 bg-white p-5 shadow-sm"
     >
-      {ejemplo && <div><InsigniaEjemplo /></div>}
       <div role="status" className="flex items-start gap-3 rounded-xl border border-ok-borde bg-ok-fondo p-4 text-ok">
         <CircleCheckBig aria-hidden="true" className="h-6 w-6 shrink-0" />
         <div>
@@ -64,7 +63,7 @@ export default function ExitoReporte({ reporte, ejemplo, alReiniciar }) {
           </li>
           <li className="flex items-start gap-2.5">
             <span aria-hidden="true" className="grid h-6 w-6 shrink-0 place-items-center rounded-full bg-gray-100 text-sm font-bold text-gray-600">3</span>
-            <span>Se envía el equipo de retiro <em>(despacho simulado en este prototipo)</em></span>
+            <span>Se envía el equipo de retiro <span className="text-gray-600">(despacho simulado)</span></span>
           </li>
         </ol>
       </div>

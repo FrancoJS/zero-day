@@ -1,4 +1,5 @@
-import IndicadorModo from "./IndicadorModo";
+import { useEffect, useState } from "react";
+import { obtenerSalud } from "../api";
 
 const VISTAS = [
   { id: "vecino", nombre: "Vecino", detalle: "Reportar un microbasural" },
@@ -6,8 +7,48 @@ const VISTAS = [
 ];
 
 /**
- * Barra roja institucional (diseño 03/04): marca, pestañas Vecino/Encargado, "Prototipo, no oficial"
- * y el indicador Kostra LIVE/MOCK. Las pestañas son enlaces ?vista=… (sin router).
+ * Estado discreto de la IA: en LIVE solo un punto + texto; MOCK y sin conexión se ven siempre (honestidad).
+ */
+function EstadoIA() {
+  const [estado, setEstado] = useState(null); // null | "live" | "mock" | "error"
+  useEffect(() => {
+    let vivo = true;
+    obtenerSalud()
+      .then((s) => vivo && setEstado(s?.modo_ia === "live" ? "live" : "mock"))
+      .catch(() => vivo && setEstado("error"));
+    return () => {
+      vivo = false;
+    };
+  }, []);
+
+  if (estado === "live") {
+    return (
+      <span role="status" className="inline-flex items-center gap-2 text-sm text-white/90">
+        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-white/80" />
+        IA en línea
+      </span>
+    );
+  }
+  if (estado === "mock") {
+    return (
+      <span role="status" className="rounded-full border border-adv-borde bg-adv-fondo px-3 py-0.5 text-sm font-semibold text-adv">
+        IA simulada (MOCK)
+      </span>
+    );
+  }
+  if (estado === "error") {
+    return (
+      <span role="status" className="rounded-full border border-critico-borde bg-white px-3 py-0.5 text-sm font-semibold text-critico">
+        Sin conexión con el servidor
+      </span>
+    );
+  }
+  return null;
+}
+
+/**
+ * Barra roja institucional (diseño 03/04): marca, pestañas Vecino/Encargado y estado discreto de la IA.
+ * Las pestañas son enlaces ?vista=… (sin router).
  * @param {{ vista: "vecino" | "encargado" }} props
  */
 export default function BarraMunicipal({ vista }) {
@@ -43,11 +84,8 @@ export default function BarraMunicipal({ vista }) {
           })}
         </nav>
 
-        <div className="flex items-center gap-3">
-          <span className="rounded-full border border-white/35 bg-white/15 px-3 py-0.5 text-xs font-semibold">Prototipo, no oficial</span>
-          <div className="rounded-full bg-white">
-            <IndicadorModo />
-          </div>
+        <div className="flex min-w-[220px] items-center justify-end">
+          <EstadoIA />
         </div>
       </div>
     </header>
