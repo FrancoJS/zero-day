@@ -178,9 +178,9 @@ export default function PanelReporte({
   const filasVisibles = filas.slice(0, visibles);
 
   let etiquetaBoton = "Enviar a Gestión de Calidad";
-  if (enviando) etiquetaBoton = "Enviando reporte…";
-  else if (noEsResiduo) etiquetaBoton = "Este canal es exclusivo para residuos";
-  else if (!puedeEnviar) etiquetaBoton = "Completa la conversación para enviar";
+  if (enviando) etiquetaBoton = "Enviando…";
+  else if (noEsResiduo) etiquetaBoton = "Este canal es solo para residuos";
+  else if (!puedeEnviar) { const n = Math.max(1, faltan); etiquetaBoton += ` · falta ${n} dato${n === 1 ? "" : "s"}`; }
 
   return (
     <aside

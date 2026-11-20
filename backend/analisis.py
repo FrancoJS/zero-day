@@ -193,6 +193,12 @@ def analisis_mock(texto: str) -> str:
             "falta_informacion": faltantes,
             "ubicacion": ubicacion,
             "pregunta_seguimiento": pregunta,
+            "respuesta_vecino": (
+                "Este canal es solo para basura y microbasurales; otros problemas van por el canal general de la Municipalidad."
+                if tipo == "no_es_residuo"
+                else f"Gracias, entendí que hay {tipo.replace('_', ' ')}" + (f" {ubicacion}." if ubicacion else ".")
+                + (f" {pregunta}" if pregunta else " Tu reporte está completo y puedes enviarlo.")
+            ),
             "evidencia": evidencia_mock(texto, decisivas),
         },
         ensure_ascii=False,
