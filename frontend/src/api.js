@@ -74,3 +74,37 @@ export async function streamTexto(texto, alFragmento) {
   }
   throw new Error("El stream se cortó antes de terminar.");
 }
+
+// --- Reportes (odd/contrato-api.md v2). Forma de ejemplo en datosEjemplo.js ---
+
+/** { sectores: [{ id, nombre, lat, lng }] } — catálogo simulado. */
+export async function obtenerSectores() {
+  return (await peticion("/api/sectores")).json();
+}
+
+/** Chat del vecino: analiza sin guardar. -> { analisis: RespuestaAnalisis, completo } */
+export async function analizarBorrador(texto, sectorId = null) {
+  const cuerpo = JSON.stringify({ texto, sector_id: sectorId });
+  return (await peticion("/api/reportes/borrador", { method: "POST", body: cuerpo })).json();
+}
+
+/** Envío final del vecino: analiza y guarda. -> Reporte */
+export async function enviarReporte(texto, sectorId) {
+  const cuerpo = JSON.stringify({ texto, sector_id: sectorId });
+  return (await peticion("/api/reportes", { method: "POST", body: cuerpo })).json();
+}
+
+/** Bandeja del encargado. -> { reportes: [Reporte], por_sector: [ResumenSector] } */
+export async function obtenerBandeja({ estado, sectorId } = {}) {
+  const params = new URLSearchParams();
+  if (estado) params.set("estado", estado);
+  if (sectorId) params.set("sector_id", sectorId);
+  const consulta = params.toString();
+  return (await peticion(`/api/reportes${consulta ? `?${consulta}` : ""}`)).json();
+}
+
+/** Aprobar o rechazar el despacho (SIMULADO). -> Reporte actualizado */
+export async function decidirReporte(id, decision, nota = null) {
+  const cuerpo = JSON.stringify({ decision, nota });
+  return (await peticion(`/api/reportes/${id}/decision`, { method: "POST", body: cuerpo })).json();
+}

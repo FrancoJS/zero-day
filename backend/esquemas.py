@@ -26,6 +26,12 @@ class ResultadoAnalisis(BaseModel):
     falta_informacion: list[str] = Field(
         default_factory=list, description="Datos que faltan para atender el reporte (ej. ubicación exacta, volumen)"
     )
+    ubicacion: str | None = Field(
+        None, description="Calle o referencia mencionada en el reporte (sin datos personales); null si no la dice"
+    )
+    pregunta_seguimiento: str | None = Field(
+        None, description="Una pregunta corta al vecino sobre el dato más importante que falta; null si no falta nada"
+    )
     evidencia: list[str] = Field(
         default_factory=list,
         description="Fragmentos literales del texto de entrada que justifican la decisión (se verifican en analisis.py)",
@@ -51,6 +57,14 @@ class ResultadoAnalisis(BaseModel):
         if not isinstance(valor, list):
             return valor
         return [f.strip()[:150] for f in valor if isinstance(f, str) and f.strip()][:4]
+
+    @field_validator("ubicacion", "pregunta_seguimiento", mode="before")
+    @classmethod
+    def _texto_corto_opcional(cls, valor):
+        # Tolerante: vacío o no-texto -> null; texto largo se recorta (no gatilla reintento).
+        if not isinstance(valor, str) or not valor.strip():
+            return None
+        return valor.strip()[:200]
 
 
 class Uso(BaseModel):
@@ -93,3 +107,91 @@ class RegistroHistorial(BaseModel):
 class RespuestaHistorial(BaseModel):
     bd: Literal["desactivada", "conectada"]
     registros: list[RegistroHistorial]
+
+
+# --- Contrato de la API de reportes (odd/contrato-api.md, S9). El backend (T2) implementa los
+# endpoints con ESTOS modelos; el frontend usa la misma forma en frontend/src/datosEjemplo.js. ---
+
+Prioridad = Literal["alta", "media", "baja"]
+EstadoReporte = Literal["pendiente", "aprobado", "rechazado"]
+
+
+class Sector(BaseModel):
+    """Sector del catálogo fijo (sectores.py). Coordenadas APROXIMADAS (simulado, sin GPS)."""
+
+    id: str
+    nombre: str
+    lat: float
+    lng: float
+
+
+class RespuestaSectores(BaseModel):
+    sectores: list[Sector]
+
+
+class SolicitudBorrador(BaseModel):
+    """Chat del vecino: analiza SIN guardar. `texto` es todo lo que el vecino escribió hasta ahora
+    (mensaje inicial + respuestas a las preguntas de seguimiento, en orden)."""
+
+    texto: str = Field(..., min_length=1, max_length=4000)
+    sector_id: str | None = None
+
+
+class RespuestaBorrador(BaseModel):
+    """`completo` = sector elegido y sin datos faltantes: el frontend habilita "Enviar"."""
+
+    analisis: RespuestaAnalisis
+    completo: bool
+
+
+class SolicitudReporte(BaseModel):
+    """Envío final del vecino: se analiza de nuevo (nunca se confía en un análisis del cliente) y se guarda."""
+
+    texto: str = Field(..., min_length=1, max_length=4000)
+    sector_id: str
+
+
+class SectorRef(BaseModel):
+    id: str
+    nombre: str
+
+
+class AnalisisGuardado(BaseModel):
+    resultado: ResultadoAnalisis
+    modo: Literal["mock", "live"]
+    modelo: str
+    latencia_ms: int
+    evidencia_descartada: int = 0
+
+
+class Reporte(BaseModel):
+    id: int
+    texto: str = Field(..., description="Texto del vecino con RUT/teléfono/correo reemplazados por [dato oculto]")
+    sector: SectorRef
+    creado_en: datetime
+    simulado: bool = False
+    estado: EstadoReporte = "pendiente"
+    decidido_en: datetime | None = None
+    nota_decision: str | None = None
+    reportes_en_sector: int = Field(1, description="Pendientes en el mismo sector (coincidencia exacta), incluido este")
+    analisis: AnalisisGuardado
+
+
+class ResumenSector(BaseModel):
+    sector_id: str
+    nombre: str
+    lat: float
+    lng: float
+    pendientes: int
+    total: int
+    prioridad_max: Prioridad | None = Field(None, description="Sobre los pendientes; null si no hay pendientes")
+
+
+class RespuestaBandeja(BaseModel):
+    reportes: list[Reporte]
+    por_sector: list[ResumenSector]
+
+
+class SolicitudDecision(BaseModel):
+    decision: Literal["aprobar", "rechazar"]
+    nota: str | None = Field(None, max_length=200)
