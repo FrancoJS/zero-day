@@ -5,7 +5,7 @@ import { cargarBandeja, decidirReporte } from "../fuente";
 import MensajeError from "../components/MensajeError";
 import MapaSectores from "../components/encargado/MapaSectores";
 import TarjetaReporte from "../components/encargado/TarjetaReporte";
-import { ORDEN_PRIORIDAD, espera } from "../components/encargado/textos";
+import { ORDEN_PRIORIDAD } from "../components/encargado/textos";
 
 const prioridadDe = (r) => r.analisis?.resultado?.prioridad;
 
@@ -24,7 +24,7 @@ export default function VistaEncargado() {
   const cargar = useCallback(async () => {
     setErrorCarga(null);
     try {
-      const { datos, ejemplo: ej } = await cargarBandeja({ estado: "pendiente" });
+      const { datos, ejemplo: ej } = await cargarBandeja({});
       setBandeja(datos);
       setEjemplo(ej);
     } catch (e) {
@@ -68,7 +68,9 @@ export default function VistaEncargado() {
   const abiertoEfectivo = visibles.some((r) => r.id === abierto) ? abierto : visibles[0]?.id;
 
   const altas = pendientes.filter((r) => prioridadDe(r) === "alta").length;
-  const aprobados = Object.values(decisiones).filter((d) => d.estado === "aprobado").length;
+  const aprobados =
+    reportes.filter((r) => r.estado === "aprobado" && !decisiones[r.id]).length +
+    Object.values(decisiones).filter((d) => d.estado === "aprobado").length;
   const nota = ejemplo
     ? "Datos de ejemplo: el backend de reportes aún no está conectado"
     : reportes.some((r) => r.simulado)
@@ -104,19 +106,19 @@ export default function VistaEncargado() {
   return (
     <div className="flex h-full min-h-0 flex-col">
       <div className="container grid shrink-0 grid-cols-4 gap-4 pt-4">
-        <Kpi etiqueta="Pendientes" valor={pendientes.length} Icono={Inbox} />
-        <Kpi etiqueta="Prioridad alta" valor={altas} Icono={AlertTriangle} tono="text-critico" />
-        <Kpi etiqueta="Espera más larga" valor={masAntiguo ? espera(masAntiguo) : "—"} Icono={Clock} />
-        <Kpi etiqueta="Despachos aprobados" valor={aprobados} Icono={CircleCheck} />
+        <Kpi etiqueta="Pendientes" valor={pendientes.length} detalle="Reportes sin decisión" Icono={Inbox} />
+        <Kpi etiqueta="Prioridad alta" valor={altas} detalle="Riesgo para las personas" Icono={AlertTriangle} tono="text-critico" />
+        <Kpi etiqueta="Espera más larga" {...(masAntiguo ? esperaCompacta(masAntiguo) : { valor: "—" })} detalle="Reporte pendiente más antiguo" Icono={Clock} />
+        <Kpi etiqueta="Despachos aprobados" valor={aprobados} detalle="Despacho simulado" Icono={CircleCheck} />
       </div>
       <div className="container grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-5 py-4">
-        <section className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900">Reportes pendientes por sector</h2>
           <p className="mb-3 text-sm text-gray-600">Toca un marcador para ver los reportes de ese sector.</p>
           <MapaSectores sectores={porSector} seleccionado={sectorActivo} alSeleccionar={(id) => { setSector(id); setAbierto(null); }} />
         </section>
 
-        <section className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
+        <section className="flex min-h-0 flex-col overflow-hidden rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-bold uppercase tracking-wider text-gray-600">
             {sectorActivo ? "Sector seleccionado" : "Todos los sectores"}
           </p>
@@ -171,12 +173,25 @@ export default function VistaEncargado() {
   );
 }
 
-function Kpi({ etiqueta, valor, Icono, tono = "text-gray-900" }) {
+// Espera en formato corto y de ancho parecido a los demás KPIs: "10 min", "5 h", "2 días".
+function esperaCompacta(iso) {
+  const min = Math.max(0, Math.round((Date.now() - new Date(iso).getTime()) / 60000));
+  if (min < 60) return { valor: min, unidad: "min" };
+  const horas = Math.round(min / 60);
+  if (horas < 48) return { valor: horas, unidad: "h" };
+  return { valor: Math.round(horas / 24), unidad: "días" };
+}
+
+function Kpi({ etiqueta, valor, unidad, detalle, Icono, tono = "text-gray-900" }) {
   return (
-    <div className="flex items-center justify-between gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm">
-      <div>
-        <p className="text-sm text-gray-600">{etiqueta}</p>
-        <p className={`text-3xl font-bold tabular-nums leading-tight ${tono}`}>{valor}</p>
+    <div className="flex items-start justify-between gap-3 rounded-xl border border-gray-200 bg-white px-5 py-3 shadow-sm" title={detalle}>
+      <div className="min-w-0">
+        <p className="text-sm font-medium text-gray-600">{etiqueta}</p>
+        <p className={`text-3xl font-bold tabular-nums leading-tight ${tono}`}>
+          {valor}
+          {unidad && <span className="ml-1 text-lg font-semibold text-gray-600">{unidad}</span>}
+        </p>
+        {detalle && <p className="truncate text-sm text-gray-500">{detalle}</p>}
       </div>
       <Icono aria-hidden="true" className={`h-6 w-6 ${tono === "text-gray-900" ? "text-gray-400" : tono}`} />
     </div>

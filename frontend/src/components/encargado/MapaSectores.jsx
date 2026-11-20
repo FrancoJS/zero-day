@@ -162,15 +162,14 @@ export default function MapaSectores({ sectores, seleccionado, alSeleccionar }) 
           </ul>
         </div>
       ) : (
-        <div ref={nodo} className="z-0 min-h-[360px] flex-1 overflow-hidden rounded-xl border border-gray-200" aria-label="Mapa de reportes pendientes por sector" />
+        <div ref={nodo} className="z-0 min-h-[220px] flex-1 overflow-hidden rounded-xl border border-gray-200" aria-label="Mapa de reportes pendientes por sector" />
       )}
       <ul className="flex flex-wrap items-center gap-x-5 gap-y-2 text-sm text-gray-700">
         <li className="flex items-center gap-2"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-critico text-white"><AlertTriangle aria-hidden="true" className="h-3.5 w-3.5" /></span>Hay prioridad alta</li>
         <li className="flex items-center gap-2"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-adv text-white"><Clock aria-hidden="true" className="h-3.5 w-3.5" /></span>Máximo media</li>
         <li className="flex items-center gap-2"><span className="inline-flex h-6 w-6 items-center justify-center rounded-full bg-gray-600 text-white"><ArrowDown aria-hidden="true" className="h-3.5 w-3.5" /></span>Solo baja</li>
         <li className="flex items-center gap-2"><span className="inline-block h-3 w-3 rounded-full bg-gray-600/60" />Sin pendientes</li>
-        <li>Número = reportes pendientes</li>
-        <li className="flex items-center gap-2"><span className="inline-block h-4 w-4 rounded-full border border-critico/50 bg-critico/30" />Intensidad = cantidad de reportes pendientes</li>
+        <li className="flex items-center gap-2"><span className="inline-block h-4 w-4 rounded-full border border-critico/50 bg-critico/30" />Número e intensidad = pendientes</li>
       </ul>
       <p className="flex items-center gap-2 text-sm text-gray-600">
         <Info aria-hidden="true" className="h-4 w-4" />

@@ -4,7 +4,7 @@
 export const CONFIG_MAPA = {
   centro: [-34.1705, -70.7407], // Plaza de los Héroes, Rancagua
   zoomInicial: 13,
-  zoomMaximoAjuste: 14, // tope al encuadrar los sectores (fitBounds)
+  zoomMaximoAjuste: 13, // tope al encuadrar los sectores (fitBounds)
   margenAjuste: [48, 48],
   tiles: {
     url: "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png",
