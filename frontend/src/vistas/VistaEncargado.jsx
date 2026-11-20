@@ -97,7 +97,8 @@ export default function VistaEncargado() {
 
   return (
     <div className="flex h-full min-h-0 flex-col">
-      <div className="flex items-center gap-3 border-b border-gray-200 bg-white px-7 py-3 text-base">
+      <div className="border-b border-gray-200 bg-white">
+        <div className="container flex items-center gap-3 py-3 text-base">
         <Inbox aria-hidden="true" className="h-5 w-5 text-gray-700" />
         <span className="font-semibold tabular-nums">{pendientes.length} reportes pendientes</span>
         <span className="text-gray-300" aria-hidden="true">·</span>
@@ -115,14 +116,15 @@ export default function VistaEncargado() {
         )}
       </div>
 
-      <div className="grid min-h-0 flex-1 grid-cols-[62fr_38fr] gap-5 p-7">
-        <section className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-xs">
+        </div>
+      <div className="container grid min-h-0 flex-1 grid-cols-[58fr_42fr] gap-5 py-6">
+        <section className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <h2 className="text-xl font-bold text-gray-900">Reportes pendientes por sector</h2>
           <p className="mb-3 text-sm text-gray-600">Toca un marcador para ver los reportes de ese sector.</p>
           <MapaSectores sectores={porSector} seleccionado={sectorActivo} alSeleccionar={(id) => { setSector(id); setAbierto(null); }} />
         </section>
 
-        <section className="flex min-h-0 flex-col rounded-2xl border border-gray-200 bg-white p-4 shadow-xs">
+        <section className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white p-4 shadow-sm">
           <p className="text-sm font-bold uppercase tracking-wider text-gray-600">
             {sectorActivo ? "Sector seleccionado" : "Todos los sectores"}
           </p>

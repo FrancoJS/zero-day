@@ -77,7 +77,7 @@ export default function TarjetaReporte({ reporte, expandido, alExpandir, decisio
       <p className="mt-1 leading-relaxed text-gray-800">
         {salida.map((s, i) =>
           s.ev ? (
-            <mark key={i} className="rounded-sm bg-destacado px-0.5 text-gray-900 underline decoration-adv decoration-2 underline-offset-4">{s.t}</mark>
+            <mark key={i} className="rounded bg-destacado px-0.5 text-gray-900 underline decoration-adv decoration-2 underline-offset-4">{s.t}</mark>
           ) : (
             <span key={i}>{s.t}</span>
           ),
@@ -113,7 +113,7 @@ export default function TarjetaReporte({ reporte, expandido, alExpandir, decisio
               type="button"
               disabled={enviando}
               onClick={() => alDecidir("aprobar")}
-              className="inline-flex flex-1 items-center justify-center gap-2 rounded-lg bg-muni-primary-a11y px-4 py-3 font-semibold text-white hover:bg-muni-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary-a11y focus-visible:ring-offset-2 disabled:opacity-60"
+              className="inline-flex flex-[1.4] items-center justify-center gap-2 whitespace-nowrap rounded-lg bg-muni-primary-a11y px-4 py-3 font-semibold text-white hover:bg-muni-primary-700 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary-a11y focus-visible:ring-offset-2 disabled:opacity-60"
             >
               <Check aria-hidden="true" className="h-5 w-5" />
               {enviando === "aprobar" ? "Registrando…" : "Aprobar despacho"}

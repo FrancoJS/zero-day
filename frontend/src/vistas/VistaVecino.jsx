@@ -211,7 +211,7 @@ export default function VistaVecino() {
   else if (chips?.tipo === "reintentar") listaChips = [{ texto: "Reintentar", reintentar: true, alElegir: reintentar }];
 
   return (
-    <div className="grid h-full min-h-0 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-6 px-8 pb-6 pt-5">
+    <div className="container grid h-full min-h-0 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-6 pb-6 pt-5">
       <ChatAsistente
         mensajes={mensajes}
         chips={listaChips}

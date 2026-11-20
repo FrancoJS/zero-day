@@ -13,7 +13,7 @@ const VISTAS = [
 export default function BarraMunicipal({ vista }) {
   return (
     <header className="bg-navbar text-white">
-      <div className="flex items-center justify-between gap-6 px-8 py-3">
+      <div className="container flex items-center justify-between gap-6 py-3">
         <div className="flex items-center gap-3">
           <div aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-white text-[15px] font-bold text-muni-primary-a11y">
             R
