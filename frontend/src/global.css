@@ -1,0 +1,300 @@
+/* ==========================================================================
+   Estilos Globales y Accesibilidad — Municipalidad de Rancagua (DESING.md §6)
+   Portado a Tailwind v3 conservando todas las reglas de accessibility.css y global.css
+   ========================================================================== */
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --base-font-size: 16px;
+  --card: 0 0% 100%;
+}
+
+html {
+  font-size: var(--base-font-size);
+  font-family: "Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+@layer base {
+  body {
+    margin: 0;
+    padding: 0;
+  }
+
+  body:has(dialog[open]) {
+    overflow: hidden;
+  }
+}
+
+/* 1. Resetear outline por defecto en mouse/touch */
+*:focus {
+  outline: none;
+}
+
+/* 2. Anillo bicolor global para navegación por teclado (WCAG 2.2 SC 2.4.11)
+      Visible sobre fondos blancos, grises oscuros y rojos institucionales */
+*:focus-visible {
+  outline: 1.5px solid #1877f2;
+  outline-offset: 1.5px;
+  border-radius: 3px;
+  box-shadow: 0 0 0 1px #ffffff, 0 0 0 4px #1877f2;
+  transition: outline-offset 0.1s ease, box-shadow 0.1s ease;
+}
+
+button:focus-visible,
+[role="button"]:focus-visible {
+  outline-color: #1877f2;
+  box-shadow: 0 0 0 2px #ffffff, 0 0 0 4px #1877f2;
+}
+
+.dark *:focus-visible,
+[data-theme="dark"] *:focus-visible {
+  outline-color: #4f98a3;
+  box-shadow: 0 0 0 1px #1c1b19, 0 0 0 3px #4f98a3;
+}
+
+/* 3. Soporte Windows High Contrast / Forced Colors */
+@media (forced-colors: active) {
+  *:focus-visible {
+    outline: 3px solid ButtonText;
+    outline-offset: 3px;
+    box-shadow: none;
+  }
+}
+
+/* 4. Respeto global a movimiento reducido */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
+
+/* 5. Utilidad solo para lectores de pantalla */
+.visually-hidden {
+  position: absolute !important;
+  width: 1px !important;
+  height: 1px !important;
+  padding: 0 !important;
+  margin: -1px !important;
+  overflow: hidden !important;
+  clip: rect(0, 0, 0, 0) !important;
+  white-space: nowrap !important;
+  border: 0 !important;
+}
+
+@layer components {
+  dialog .overflow-y-auto,
+  .overflow-y-auto {
+    -webkit-overflow-scrolling: touch;
+    overscroll-behavior-y: contain;
+  }
+
+  .container {
+    @apply mx-auto w-full max-w-full px-3 sm:max-w-3xl sm:px-6 lg:max-w-5xl lg:px-8 xl:max-w-7xl;
+  }
+
+  /* Layout y Contenedores Canónicos */
+  .section-padding {
+    @apply py-12 md:pt-14 md:pb-16;
+  }
+
+  .inner-padding {
+    @apply pt-3 pb-10;
+  }
+
+  .inner-header {
+    @apply pb-6;
+  }
+
+  /* Jerarquía Tipográfica Semántica */
+  .inner-title {
+    @apply mb-2 text-xl font-semibold text-gray-900 lg:text-2xl dark:text-gray-100;
+  }
+
+  .section-title {
+    @apply text-2xl font-semibold text-gray-900 dark:text-gray-100;
+  }
+
+  .titulo {
+    @apply text-xl font-semibold text-gray-900 dark:text-white;
+  }
+
+  .card-titulo {
+    @apply mb-2.5 text-lg leading-tight font-semibold text-gray-900 transition-colors group-hover:text-muni-primary hover:text-muni-primary hover:underline dark:text-gray-100;
+  }
+
+  .subtitulo {
+    @apply text-base font-medium text-gray-900 md:text-lg dark:text-gray-200;
+  }
+
+  .titulo-sm {
+    @apply text-sm font-medium text-gray-800 dark:text-gray-200;
+  }
+
+  .section-p {
+    @apply mt-2 max-w-2xl text-sm text-gray-600 lg:text-base dark:text-gray-300;
+  }
+
+  .contenido {
+    @apply text-xs leading-relaxed text-gray-700 md:text-sm dark:text-gray-300;
+  }
+
+  .nota {
+    @apply text-xs font-semibold text-gray-700 dark:text-gray-300;
+  }
+
+  .badge {
+    @apply rounded-xl bg-gray-100 px-3 py-1 text-xs font-medium text-gray-600 md:rounded-3xl dark:bg-gray-800 dark:text-gray-300;
+  }
+
+  .enlace-texto {
+    @apply transition-all ease-in-out group-hover:text-muni-primary group-hover:underline hover:text-muni-primary hover:underline;
+  }
+
+  /* Botones y Acciones Clicables */
+  .btn-primario-solid {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-muni-primary-a11y px-6 py-3 text-sm font-semibold text-white transition hover:bg-muni-primary-700;
+  }
+
+  .btn-cta-solid {
+    @apply flex w-full cursor-pointer items-center justify-center gap-2 rounded-lg bg-[#C1272D] px-4 py-2.5 text-xs font-semibold text-white transition-colors hover:bg-[#9D1F26];
+  }
+
+  .btn-descargar-icon-solid {
+    @apply inline-flex cursor-pointer items-center justify-center gap-2 rounded-md bg-muni-primary px-3 py-2 text-sm text-white transition-colors hover:bg-muni-primary/90;
+  }
+
+  .btn-gris {
+    @apply inline-flex cursor-pointer items-center gap-1 rounded-md border border-gray-300 bg-white px-3 py-1.5 text-xs font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:!bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800;
+  }
+
+  .btn-gris-xl {
+    @apply inline-flex cursor-pointer items-center gap-2 rounded-lg border border-gray-300 bg-white px-4 py-2 text-sm font-semibold text-gray-700 transition-colors hover:bg-gray-50 dark:border-gray-600 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-gray-800;
+  }
+
+  .btn-abrir {
+    @apply inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 px-3 py-2 text-sm whitespace-nowrap text-gray-600 transition-colors hover:bg-gray-100 dark:border-gray-600 dark:text-gray-300 dark:hover:bg-gray-700;
+  }
+
+  .cta-primary-button {
+    @apply inline-flex cursor-pointer items-center gap-1.5 rounded-lg py-2 text-sm font-medium text-muni-primary-a11y underline transition-all duration-200 ease-in-out hover:text-muni-primary-700 dark:text-gray-300 dark:hover:text-white;
+  }
+
+  /* Tarjetas, Contenedores y Callouts Semánticos */
+  .card {
+    @apply rounded-xl border border-gray-200 bg-white shadow-sm transition-all ease-in-out hover:border-gray-300 hover:shadow-md dark:border-gray-700 dark:bg-gray-900 dark:hover:border-gray-600;
+  }
+
+  .card-selected {
+    @apply !border-muni-primary/30 !bg-white !text-muni-primary !shadow-sm dark:!bg-gray-900;
+  }
+
+  .card-importante {
+    @apply rounded-xl border border-amber-200 bg-amber-50 p-5 dark:border-amber-700/40 dark:bg-amber-700/10;
+  }
+
+  .card-importante-header {
+    @apply flex items-start gap-3 mb-4;
+  }
+
+  .destacado {
+    @apply rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm leading-relaxed text-amber-900 dark:border-amber-700/40 dark:bg-amber-700/10 dark:text-amber-100;
+  }
+
+  .restriccion {
+    @apply rounded-xl border border-red-200 bg-red-50 p-4 text-sm leading-relaxed text-red-800 dark:border-red-800/40 dark:bg-red-900/20 dark:text-red-200;
+  }
+
+  .informacion {
+    @apply rounded-xl border border-blue-200 bg-blue-50 p-4 text-sm leading-relaxed text-blue-900 dark:border-blue-800/40 dark:bg-blue-900/20 dark:text-blue-100;
+  }
+
+  .item-destacado {
+    @apply rounded-xl border border-muni-primary/20 bg-muni-primary/10 px-3 py-2 shadow-sm transition-all duration-200;
+  }
+
+  .detalles-card-items-bg {
+    @apply flex items-center gap-3 rounded-lg border border-gray-100 bg-gray-50 p-3 dark:border-gray-800 dark:bg-gray-950/40;
+  }
+
+  .list-item {
+    @apply rounded-lg border border-gray-200 bg-gray-50 p-4 dark:border-gray-700 dark:!bg-gray-900/60;
+  }
+
+  /* Inputs y Formularios */
+  .search-input {
+    @apply w-full rounded-lg border border-gray-300 bg-white text-gray-900 placeholder-gray-500 transition-all focus:border-muni-primary focus:ring-2 focus:ring-muni-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-100 dark:placeholder-gray-400;
+  }
+
+  .search-filter {
+    @apply rounded-lg border border-gray-300 bg-white px-3 py-2 text-sm text-gray-700 focus:border-muni-primary focus:ring-2 focus:ring-muni-primary/20 dark:border-gray-600 dark:bg-gray-800 dark:text-gray-200;
+  }
+
+  /* Gradientes Institucionales */
+  .bg-navbar {
+    @apply bg-gradient-to-b from-muni-primary to-muni-primary-a11y dark:from-gray-950 dark:to-gray-900;
+  }
+
+  .cta-bg {
+    @apply bg-gradient-to-r from-muni-primary to-muni-primary-900 dark:from-gray-800 dark:to-gray-900;
+  }
+
+  .cta-bg-gris {
+    @apply bg-gradient-to-r from-gray-50 to-gray-100 dark:from-gray-800/50 dark:to-gray-900/50;
+  }
+}
+
+@layer utilities {
+  .scrollbar-thin {
+    scrollbar-width: thin;
+  }
+
+  .scrollbar-none {
+    scrollbar-width: none;
+  }
+  .scrollbar-none::-webkit-scrollbar {
+    display: none;
+  }
+}
+
+@keyframes pageContentFadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.page-content-transition {
+  animation: pageContentFadeIn 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .page-content-transition {
+    animation: none;
+  }
+}
+
+@media print {
+  @page {
+    size: A4;
+    margin: 0.5cm;
+  }
+
+  body {
+    -webkit-print-color-adjust: exact !important;
+    print-color-adjust: exact !important;
+  }
+}

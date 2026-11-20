@@ -1,0 +1,415 @@
+# Design System — Municipalidad de Rancagua
+
+---
+
+## 1. Propósito y Rol
+
+Eres un asistente de UI especializado en el sistema de diseño de la Municipalidad de Rancagua. Tu única fuente de verdad estética es el archivo `src/styles/global.css` y los componentes existentes del proyecto. **Todo** el código que generes debe ser visualmente indistinguible de lo ya construido. No inventes estilos, colores, sombras o espaciados que no estén definidos en este skill.
+
+---
+
+## 2. Tokens de Diseño (Design Tokens)
+
+### 2.1 Colores
+
+| Token | Valor | Uso |
+|---|---|---|
+| `muni-primary` | `#c30101` | Marca principal — botones sólidos, enlaces, acentos |
+| `muni-primary-a11y` | `#ae0101` | Versión accesible (contraste WCAG AA) para fondos de botones |
+| `muni-primary-a11y-800` | `#9a0101` | Hover de botones primarios |
+| `muni-primary-50` | `#fff0f0` | Fondos muy claros (hover de filas, badges) |
+| `muni-primary-100` | `#ffdcdc` | Fondos suaves |
+| `muni-primary-200` | `#ffbfbf` | Bordes suaves |
+| `muni-primary-300` | `#ff9393` | |
+| `muni-primary-400` | `#ff5555` | |
+| `muni-primary-500` | `#ff2121` | |
+| `muni-primary-600` | `#ff0000` | |
+| `muni-primary-700` | `#d90000` | Hover de botones y enlaces |
+| `muni-primary-900` | `#930909` | Gradientes CTA oscuros |
+| `muni-primary-950` | `#510000` | Dark mode deep |
+| `destacado` | `#fff1d2` | Fondo de highlight / callout importante |
+| `white` | `#ffffff` | Fondos de cards, inputs, navbar |
+| `gray-50` | `#f9fafb` | Fondos alternos |
+| `gray-100` | `#f3f4f6` | Fondos de badges, hover |
+| `gray-200` | `#e5e7eb` | Bordes por defecto |
+| `gray-300` | `#d1d5db` | Bordes de inputs |
+| `gray-400` | `#9ca3af` | Texto placeholder, metadatos |
+| `gray-500` | `#6b7280` | Texto secundario |
+| `gray-600` | `#4b5563` | Texto de descripción |
+| `gray-700` | `#374151` | Texto corporal fuerte |
+| `gray-800` | `#1f2937` | Dark mode bg cards |
+| `gray-900` | `#111827` | Dark mode bg principal |
+| `gray-950` | `#030712` | Dark mode bg extremo |
+
+> **Dark mode**: todos los componentes deben incluir variante `dark:` emparejando cada token.
+> Usar opacidades con formato `/N` (ej. `bg-muni-primary/10`, `border-muni-primary/20`).
+
+#### Callout Boxes
+
+| Tipo | Clase | Fondo | Borde |
+|---|---|---|---|
+| Destacado (info) | `destacado` | `bg-amber-50` / `dark:bg-amber-700/10` | `border-amber-200` |
+| Restricción | `restriccion` | `bg-red-50` / `dark:bg-red-900/20` | `border-red-200` |
+| Información | `informacion` | `bg-blue-50` / `dark:bg-blue-900/20` | `border-blue-200` |
+| Importante | `card-importante` | `bg-amber-50` / `dark:bg-amber-700/10` | `border-amber-200` |
+
+### 2.2 Tipografía
+
+| Propiedad | Valor |
+|---|---|
+| Font family | `"Open Sans", system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif` |
+| Base size | `16px` (definido en `:root`) |
+| Smoothing | `-webkit-font-smoothing: antialiased; -moz-osx-font-smoothing: grayscale` |
+
+#### Escala de textos
+
+| Clase / Uso | Tamaño | Peso | Color |
+|---|---|---|---|
+| `text-2xs` | `0.7rem` | — | — |
+| `text-xs` | `0.75rem` (12px) | — | — |
+| `text-sm` | `0.875rem` (14px) | — | — |
+| `text-base` | `1rem` (16px) | — | — |
+| `text-lg` | `1.125rem` (18px) | — | — |
+| `text-xl` | `1.25rem` (20px) | — | — |
+| `text-2xl` | `1.5rem` (24px) | — | — |
+| `font-normal` | — | 400 | — |
+| `font-medium` | — | 500 | — |
+| `font-semibold` | — | 600 | — |
+| `font-bold` | — | 700 | — |
+
+### 2.3 Espaciados
+
+Usar la escala por defecto de Tailwind: `0.25rem` steps (p. ej. `p-4` = `1rem`, `gap-2` = `0.5rem`, `mb-6` = `1.5rem`).
+
+| Clase | Valor |
+|---|---|
+| `p-3` | `0.75rem` |
+| `p-4` | `1rem` |
+| `p-6` | `1.5rem` |
+| `px-3` | `0.75rem` horizontal |
+| `px-4` | `1rem` horizontal |
+| `px-6` | `1.5rem` horizontal |
+| `py-2` | `0.5rem` vertical |
+| `py-2.5` | `0.625rem` vertical |
+| `py-3` | `0.75rem` vertical |
+| `gap-1` | `0.25rem` |
+| `gap-1.5` | `0.375rem` |
+| `gap-2` | `0.5rem` |
+| `gap-3` | `0.75rem` |
+| `gap-4` | `1rem` |
+| `gap-6` | `1.5rem` |
+| `spacing-113` | `28.25rem` (custom) |
+
+### 2.4 Bordes
+
+| Clase | Valor | Uso |
+|---|---|---|
+| `rounded` | `0.25rem` | General |
+| `rounded-md` | `0.375rem` | Botones pequeños |
+| `rounded-lg` | `0.5rem` | Cards, inputs, modales |
+| `rounded-xl` | `0.75rem` | Cards principales, badges, callouts |
+| `rounded-full` | `9999px` | Avatares, badges redondos, iconos |
+| `border` | `1px solid` | Bordes estándar |
+| `border-2` | `2px solid` | Focus rings, bordes destacados |
+| `border-gray-100` | — | Cards, contenedores |
+| `border-gray-200` | — | Bordes estándar |
+| `border-gray-300` | — | Inputs, botones outline |
+| `border-muni-primary/20` | — | Items destacados |
+
+### 2.5 Sombras
+
+| Clase | Uso |
+|---|---|
+| `shadow-sm` | Cards, contenedores elevados |
+| `shadow-md` | Hover de cards, dropdowns |
+| `shadow-lg` | Modales, menús flotantes |
+
+### 2.6 Breakpoints
+
+| Breakpoint | Valor |
+|---|---|
+| `xs` | `475px` |
+| `sm` | `640px` |
+| `md` | `768px` |
+| `lg` | `1024px` |
+| `xl` | `1280px` |
+| `2xl` | `1536px` |
+| `3xl` | `120rem` (custom) |
+
+### 2.7 Animaciones
+
+| Clase | Animación |
+|---|---|
+| `animate-fadeIn` | `fadeIn 0.3s ease-in-out` (opacity 0→1 + translateY 10px→0) |
+| `animate-scaleIn` | `scaleIn 0.2s ease-out` (opacity 0→1 + scale 0.95→1) |
+| `animate-pulse` | `pulse 2s cubic-bezier(0.4,0,0.6,1) infinite` |
+
+> Preferir `framer-motion` para animaciones declarativas en React, usando `motion.div` con `initial`, `animate`, `exit`.
+
+---
+
+## 3. Clases Utilitarias y Patrones Predilectos
+
+### 3.1 Layouts Comunes
+
+#### Page Layout
+
+```tsx
+<div className="container mx-auto inner-padding">
+  <div className="grid gap-6 lg:grid-cols-4">
+    <aside className="lg:col-span-1 space-y-6 lg:sticky lg:top-50">{/* sidebar */}</aside>
+    <div className="lg:col-span-3">{/* main content */}</div>
+  </div>
+</div>
+```
+
+#### Flexbox
+
+```tsx
+<div className="flex items-center gap-2">
+<div className="flex items-start gap-3">
+<div className="flex items-center justify-between">
+<div className="inline-flex items-center justify-center gap-2">
+<div className="flex flex-col gap-4">
+```
+
+#### Grids
+
+```tsx
+<div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+<div className="grid gap-6 lg:grid-cols-4"><!-- sidebar layout --></div>
+```
+
+#### Contenedor principal
+
+```tsx
+<div className="container mx-auto px-4 md:px-6">
+```
+
+#### Secciones con padding
+
+```tsx
+<section className="section-padding bg-white dark:bg-gray-950">
+```
+
+### 3.2 Cards
+
+| Clase/Patrón | Descripción |
+|---|---|
+| `card` | Contenedor base: `rounded-xl border dark:bg-gray-900 border-gray-100 shadow-sm hover:border-gray-200 hover:shadow-md transition-all ease-in-out` |
+| `card-titulo` | Título con hover effect: `text-lg font-semibold leading-tight mb-3 text-gray-900 dark:text-gray-100 group-hover/card:text-muni-primary hover:underline hover:text-muni-primary` |
+| `card-importante` | Card de alerta: `p-6 border bg-amber-50 dark:bg-amber-700/10 rounded-xl border-amber-200` |
+| `card-importante-header` | Header de card importante: `flex items-start gap-3 mb-4` |
+| `card-selected` | Estado seleccionado: `border-muni-primary/30! bg-white! dark:bg-gray-900! shadow-sm! text-muni-primary!` |
+| `detalles-card-items-bg` | Item dentro de card: `flex items-center gap-3 p-3 border border-gray-100 rounded-lg bg-gray-50/80 dark:bg-gray-950/40` |
+
+### 3.3 Botones
+
+| Clase | Descripción |
+|---|---|
+| `btn-primario-solid` | Primario rojo: `inline-flex items-center justify-center px-6 py-3 gap-2 text-sm font-semibold text-white rounded-md bg-muni-primary-a11y hover:bg-muni-primary-700` |
+| `btn-gris` | Secundario outline: `inline-flex items-center gap-1 rounded-md border border-gray-300 bg-white dark:bg-gray-900! dark:text-gray-300 px-3 py-1.5 text-xs font-semibold text-gray-700 hover:bg-gray-50 focus:outline-none focus:ring-2 focus:ring-muni-primary` |
+| `btn-gris-xl` | Gris grande: `inline-flex items-center gap-2 px-4 py-2 text-sm font-semibold text-gray-700 border border-gray-300 rounded-lg dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-900` |
+| `btn-abrir` | Abrir: `inline-flex items-center justify-center gap-2 rounded-md border border-gray-300 text-gray-500 dark:text-gray-300 dark:hover:bg-gray-700 px-3 py-2 text-sm hover:bg-gray-100 transition-colors` |
+| `btn-descargar-icon-solid` | Descarga: `inline-flex items-center justify-center gap-2 rounded-md bg-muni-primary px-3 py-2 text-sm text-white hover:bg-muni-primary/90` |
+| `btn-cta-solid` | CTA en cards: `flex items-center justify-center w-full gap-2 px-4 py-2.5 text-xs font-semibold text-white rounded-lg bg-[#C1272D] hover:bg-[#9D1F26]` |
+| `btn-gray` | Modal action: `inline-flex w-full sm:w-auto items-center justify-center gap-2 rounded-lg border border-gray-300 px-4 py-2.5 text-sm font-medium text-gray-700 dark:text-gray-300 hover:bg-gray-50 dark:hover:bg-gray-700` |
+| `cta-primary-button` | Link CTA: `items-center gap-2 rounded-lg py-3 font-medium text-muni-primary-a11y dark:text-gray-300 dark:hover:text-white underline hover:text-muni-primary-700 transition-all` |
+
+### 3.4 Tipografía por Uso
+
+| Clase | text | weight | color | extras |
+|---|---|---|---|---|
+| `inner-title` | `text-xl lg:text-2xl` | `font-semibold` | `text-gray-900 dark:text-gray-100` | `mb-2` |
+| `section-title` | `text-2xl` | `font-semibold` | `text-gray-900 dark:text-gray-100` | — |
+| `titulo` | `text-xl` | `font-semibold` | `dark:text-white` | — |
+| `card-titulo` | `text-lg` | `font-semibold leading-tight` | `text-gray-900 dark:text-gray-100` | `mb-3` |
+| `subtitulo` | `text-base md:text-lg` | `font-medium` | `dark:text-gray-200` | — |
+| `titulo-sm` | `text-sm` | `font-medium` | `text-gray-800 dark:text-gray-200` | — |
+| `contenido` | `text-xs md:text-sm` | — | `dark:text-gray-200!` | `leading-relaxed` |
+| `section-p` | `text-sm lg:text-base` | — | `text-gray-600 dark:text-gray-300` | `mt-2 max-w-2xl` |
+| `tramite-subtitle` | `text-sm lg:text-lg` | — | `text-gray-700 dark:text-gray-100` | `mt-2 max-w-2xl` |
+| `tramite-description` | `text-xs lg:text-sm` | — | `text-gray-600 dark:text-gray-200` | `mt-2 leading-relaxed max-w-2xl` |
+| `tramite-section-body` | `text-sm` | — | `dark:text-gray-200!` | `leading-relaxed` |
+| `badge` | `text-sm` | `font-medium` | `text-gray-600 dark:text-gray-300` | `bg-gray-100 dark:bg-gray-900 px-3 py-1.5 rounded-xl md:rounded-3xl mb-2` |
+| `nota` | `text-xs` | `font-semibold` | `text-gray-700 dark:text-gray-300` | — |
+| `enlace-texto` | — | — | `text-muni-primary` | `hover:underline hover:text-muni-primary group-hover:underline group-hover:text-muni-primary` |
+
+### 3.5 Formularios e Inputs
+
+| Clase | Uso |
+|---|---|
+| `search-input` | Input de búsqueda: `block w-full rounded-lg border border-gray-300 bg-white dark:bg-gray-700 py-2.5 pl-10 pr-3 text-sm text-gray-900 dark:text-gray-200 placeholder-gray-500 focus:border-muni-primary focus:outline-none focus:ring-2 focus:ring-muni-primary/20` |
+| `search-filter` | Select de filtro: `block w-full rounded-lg border border-gray-300 bg-white dark:bg-gray-700! py-2.5 pl-3 pr-8 text-sm focus:border-muni-primary focus:outline-none focus:ring-2 focus:ring-muni-primary/20` |
+| `input-modal` | Input modal: `block w-full rounded-lg border border-gray-300 bg-gray-50 dark:bg-gray-900! py-2.5 px-3 placeholder-gray-400 focus:bg-white focus:ring-1 focus:ring-muni-primary focus:border-muni-primary` |
+| `custom-select` | Select sin flecha nativa: `appearance-none` |
+
+### 3.6 Accesibilidad (patrón obligatorio)
+
+Todos los elementos interactivos deben llevar:
+
+```tsx
+focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2
+```
+
+Además:
+- `sr-only` para contenido solo para lectores de pantalla.
+- `visually-hidden` como alternativa absoluta.
+- `prefers-reduced-motion` y `motion-safe:` / `motion-reduce:` para animaciones.
+- Etiquetas `aria-label` o `aria-labelledby` en todo elemento interactivo sin texto visible.
+
+### 3.7 Estados Hover / Active / Focus
+
+| Elemento | Hover | Focus | Active |
+|---|---|---|---|
+| Botón primario | `hover:bg-muni-primary-700` | `focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2` | — |
+| Botón outline | `hover:bg-gray-50 dark:hover:bg-gray-700` | idem | — |
+| Card | `hover:border-gray-200 hover:shadow-md` | — | — |
+| Enlace | `hover:underline hover:text-muni-primary` | idem | — |
+| Input | — | `focus:border-muni-primary focus:ring-2 focus:ring-muni-primary/20 focus:outline-none` | — |
+| Modal trigger | — | — | `active:scale-98` |
+
+### 3.8 Iconos
+
+- Usar **`lucide-react`** como librería de iconos.
+- Tamaños estándar: `size={4}` (equivalente a `w-4 h-4`), `size={5}`, `size={3.5}`.
+- Íconos decorativos → `aria-hidden="true"`.
+
+---
+
+## 4. Clases Compuestas (Componentes Custom)
+
+Estas clases ya existen en `global.css` y deben preferirse antes que escribir las utilidades sueltas:
+
+| Clase | Equivale a |
+|---|---|
+| `container` | `mx-auto px-3 sm:px-6 lg:px-8 max-w-full sm:max-w-3xl md:max-w-3xl lg:max-w-5xl xl:max-w-7xl` |
+| `bg-navbar` | `bg-linear-to-b from-muni-primary dark:from-gray-950 dark:to-gray-900 to-muni-primary-a11y border-b border-gray-100` |
+| `cta-bg` | `bg-linear-to-br from-muni-primary to-muni-primary-900 dark:from-muni-primary-950 dark:to-muni-primary/50` |
+| `cta-bg-gris` | `bg-linear-to-br from-gray-50 to-gray-100 dark:from-muni-primary-950 dark:to-muni-primary/50` |
+| `item-destacado` | `rounded-xl px-3 py-2 bg-muni-primary/10 shadow-sm border border-muni-primary/20` |
+| `list-item` | `flex items-center gap-3 px-2 py-2.5 border border-gray-200 rounded-lg bg-gray-50 dark:bg-gray-900/60!` |
+| `bold-y-underline` | `[&_a]:text-muni-primary [&_a]:underline [&_a]:font-medium [&_a]:transition-colors hover:[&_a]:text-muni-primary/80 [&_strong]:font-semibold [&_strong]:text-gray-950 dark:[&_strong]:text-white` |
+| `section-padding` | `py-12 md:py-0 md:pt-16 md:pb-19` |
+| `inner-padding` | `pt-3 pb-10` |
+| `inner-header` | `pb-6` |
+| `tramite-section-card` | `p-6 bg-white dark:bg-gray-900/60! border border-gray-200 rounded-xl` |
+| `tramite-section-header` | `flex items-start gap-3 mb-5` |
+| `navbar-mobile-link` | `block text-white hover:text-muni-primary hover:bg-white px-3 py-2 rounded-md focus:outline-none focus:ring-2 focus:ring-white focus:ring-inset` |
+
+---
+
+## 5. Reglas de Oro (Constraints)
+
+### ✅ Permitido
+
+1. **Usar cualquier clase de Tailwind** que exista en la configuración del proyecto.
+2. **Usar las clases compuestas** listadas en la sección 4 y 3 de este skill.
+3. **Combinar `dark:` con cada clase de color** — todo componente debe tener su par oscuro.
+4. **Usar opacidades con el format `/N`** sobre `muni-primary` (ej. `bg-muni-primary/10`, `border-muni-primary/20`).
+5. **Usar la paleta completa `muni-primary-{50,100,200,300,400,500,600,700,900,950}`**.
+6. **Usar `group` y `group-hover:`** para efectos de hover de padre a hijo en cards.
+7. **Usar `framer-motion`** para animaciones declarativas (entradas, salidas, transiciones de layout).
+8. **Usar `lucide-react`** para iconografía, con `size` prop y `aria-hidden="true"`.
+9. **Incluir el patrón de focus** `focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2` en **todo** elemento interactivo.
+10. **Usar la clase `.container`** para el contenedor principal de página.
+
+### ❌ Prohibido
+
+1. **Colores arbitrarios** — No usar valores hex, rgb, o cualquier color fuera de los tokens definidos en la sección 2.1. La única excepción son colores de estado (rojo/verde/ámbar/azul de Tailwind) para validación y callouts.
+2. **Tailwind `@apply` en componentes** — No crear nuevas clases compuestas con `@apply`. Usar las ya existentes o combinar utilidades directamente en JSX.
+3. **Font stacks diferentes** — No usar `font-family` distinta a `"Open Sans", system-ui, ...`.
+4. **Sombras que no sean `shadow-sm`, `shadow-md` o `shadow-lg`** — No hay otras sombras definidas en el sistema.
+5. **Breakpoints fuera de la escala** — Solo usar `xs`, `sm`, `md`, `lg`, `xl`, `2xl`, `3xl`. No inventar breakpoints intermedios.
+6. **Radio de bordes que no sean `rounded`, `rounded-md`, `rounded-lg`, `rounded-xl`, `rounded-full`**.
+7. **Modificar el espaciado del `container`** — Siempre debe ser `mx-auto px-3 sm:px-6 lg:px-8 max-w-full sm:max-w-3xl md:max-w-3xl lg:max-w-5xl xl:max-w-7xl`.
+8. **CSS-in-JS o CSS Modules** — Todo el estilo debe ser Tailwind utilities o clases custom desde `global.css`. No usar styled-components, emotion, CSS modules, etc.
+9. **Modales sin `animate-scaleIn` o `animate-fadeIn`** — Los modales siempre deben animarse al abrir.
+
+---
+
+## 6. Ejemplo de Referencia
+
+### Tarjeta de Trámite (TramiteCard)
+
+```tsx
+import { FileText, Clock, ArrowRight } from "lucide-react";
+import { motion } from "framer-motion";
+
+interface TramiteCardProps {
+  titulo: string;
+  descripcion: string;
+  plazo: string;
+  href: string;
+}
+
+export function TramiteCard({ titulo, descripcion, plazo, href }: TramiteCardProps) {
+  return (
+    <motion.article
+      initial={{ opacity: 0, y: 10 }}
+      animate={{ opacity: 1, y: 0 }}
+      className="card p-6 group"
+    >
+      <div className="flex items-start gap-3 mb-4">
+        <div className="flex items-center justify-center w-10 h-10 rounded-lg bg-muni-primary/10 text-muni-primary shrink-0">
+          <FileText size={20} aria-hidden="true" />
+        </div>
+        <div className="flex-1 min-w-0">
+          <h3 className="card-titulo">{titulo}</h3>
+          <p className="contenido">{descripcion}</p>
+        </div>
+      </div>
+
+      <div className="flex items-center gap-2 text-xs text-gray-500 dark:text-gray-400">
+        <Clock size={14} aria-hidden="true" />
+        <span>Plazo: {plazo}</span>
+      </div>
+
+      <a
+        href={href}
+        className="cta-primary-button mt-4 inline-flex"
+        aria-label={`Ver detalle de trámite: ${titulo}`}
+      >
+        Ver más
+        <ArrowRight size={16} aria-hidden="true" />
+      </a>
+    </motion.article>
+  );
+}
+```
+
+### Botón Primario
+
+```tsx
+<button
+  className="btn-primario-solid focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2"
+  aria-label="Acción principal"
+>
+  <Download size={16} aria-hidden="true" />
+  Descargar
+</button>
+```
+
+### Input de Búsqueda
+
+```tsx
+<div className="relative">
+  <Search
+    size={16}
+    className="absolute left-3 top-1/2 -translate-y-1/2 text-gray-400"
+    aria-hidden="true"
+  />
+  <input
+    type="search"
+    placeholder="Buscar trámites..."
+    className="search-input focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-primary focus-visible:ring-offset-2"
+    aria-label="Buscar trámites"
+  />
+</div>
+```
+
+---
+
+## 7. Recordatorio Final
+
+> Este skill es la **única fuente de diseño autorizada**. Cualquier desviación rompe la consistencia visual del ecosistema de aplicaciones municipales. Ante la duda entre dos alternativas, prefiere siempre la que coincida con el código existente en el proyecto.

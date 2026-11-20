@@ -1,15 +1,9 @@
 import Icono from "./Iconos";
 
 /**
- * Evidencia citada por la IA como chips clicables (diseño 04). Al elegir un chip, el padre resalta
- * la señal o el fragmento correspondiente (ListaSenales con estado "activa", TextoEvidencia con fragmentoActivo).
- * @param {object} props
- * @param {{id: string, texto: string}[]} props.chips  solo evidencia YA verificada por el backend
- * @param {string} [props.activo]  id del chip seleccionado
- * @param {(id: string) => void} [props.onSeleccionar]
- * @param {number} [props.descartadas=0]  citas de la IA que no existían en el texto y se descartaron
- * @param {string} [props.titulo]  rótulo sobre los chips
- * @param {string} [props.dondeSeVerifico="en el texto"]  ej. "en las señales"
+ * Evidencia citada por la IA como píldoras de filtro clicables (DESING.md §5.4.3).
+ * Activa: `border-muni-primary-a11y bg-muni-primary-a11y text-white`.
+ * Inactiva: sub-paleta Borgoña/Vino (`border-rose-200/90 bg-rose-50/40 text-[#8C1D28] hover:bg-rose-100/70`).
  */
 export default function ChipsEvidencia({
   chips = [],
@@ -22,7 +16,11 @@ export default function ChipsEvidencia({
   const total = chips.length + descartadas;
   return (
     <div>
-      {titulo && <p className="mb-2 text-[14px] font-bold uppercase tracking-[0.08em] text-texto2">{titulo}</p>}
+      {titulo && (
+        <p className="mb-2 text-2xs font-bold uppercase tracking-wider text-[#8C1D28]/85 dark:text-rose-300/80">
+          {titulo}
+        </p>
+      )}
       {chips.length > 0 ? (
         <div className="flex flex-wrap gap-2">
           {chips.map((chip) => {
@@ -33,15 +31,17 @@ export default function ChipsEvidencia({
                 type="button"
                 aria-pressed={esActivo}
                 onClick={() => onSeleccionar?.(chip.id)}
-                className={`inline-flex max-w-full items-center gap-2 rounded-[22px] border-[1.5px] px-3.5 py-1.5 text-left text-base font-semibold transition-colors motion-reduce:transition-none ${
+                className={`inline-flex min-h-8 max-w-full cursor-pointer items-center gap-2 rounded-full border px-3 py-1 text-left text-xs sm:text-sm font-semibold shadow-xs transition-all active:scale-[0.98] motion-reduce:transition-none ${
                   esActivo
-                    ? "border-acento bg-acento text-white"
-                    : "border-acento-borde bg-superficie text-acento-osc hover:bg-acento-suave"
+                    ? "border-muni-primary-a11y bg-muni-primary-a11y text-white"
+                    : "border-rose-200/90 bg-rose-50/40 text-[#8C1D28] hover:border-rose-300 hover:bg-rose-100/70 dark:border-rose-900/60 dark:bg-rose-950/30 dark:text-rose-200 dark:hover:bg-rose-900/40"
                 }`}
               >
                 <b
-                  className={`shrink-0 rounded-md px-1.5 text-[13px] ${
-                    esActivo ? "bg-white text-acento-osc" : "bg-acento-suave"
+                  className={`shrink-0 rounded-full px-1.5 py-0.5 text-[11px] font-bold tabular-nums ${
+                    esActivo
+                      ? "bg-white text-muni-primary-a11y-800"
+                      : "bg-rose-100 text-[#6b151e] dark:bg-rose-900/60 dark:text-rose-100"
                   }`}
                 >
                   {chip.id}
@@ -52,10 +52,14 @@ export default function ChipsEvidencia({
           })}
         </div>
       ) : (
-        <p className="text-base text-texto2">La IA no citó evidencia.</p>
+        <p className="text-sm text-gray-600 dark:text-gray-400">La IA no citó evidencia.</p>
       )}
-      <p className={`mt-2 flex items-center gap-1.5 text-[15px] font-medium ${descartadas > 0 ? "text-adv" : "text-ok"}`}>
-        <Icono nombre={descartadas > 0 ? "alerta" : "check"} className="h-4 w-4" grosor={3} />
+      <p
+        className={`mt-2 flex items-center gap-1.5 text-xs font-semibold tabular-nums ${
+          descartadas > 0 ? "text-amber-700 dark:text-amber-400" : "text-emerald-700 dark:text-emerald-400"
+        }`}
+      >
+        <Icono nombre={descartadas > 0 ? "alerta" : "check"} className="h-4 w-4" grosor={2.6} />
         {chips.length} de {total} evidencias verificadas {dondeSeVerifico} · {descartadas}{" "}
         {descartadas === 1 ? "descartada" : "descartadas"}
       </p>

@@ -28,7 +28,7 @@ Pitch y rúbrica en detalle: [PITCH.md](./PITCH.md) · Arranque y servidor: [REA
 2. **Repo público:** nunca commitear keys, `.env` ni `tfstate`. `.gitignore` ya los excluye; si un desafío trae un CSV, revisarlo y agregarlo con `git add -f` a conciencia.
 3. **Alcance chico:** nada de login, panel de admin, CI, Kubernetes, RAG/embeddings (Kostra no tiene) ni infraestructura que el jurado no ve. Primero el flujo principal.
 4. **Honestidad:** no afirmar en UI, README ni pitch nada que no esté implementado. Lo simulado se marca como simulado; lo estimado, como estimado. Nunca cambiar a MOCK en silencio.
-5. **Cambios grandes:** pedir confirmación antes de cambiar estructura, agregar dependencias o migrar de stack (solo JSX, sin TypeScript; sin librerías de componentes ni de íconos). Única dependencia nueva autorizada: `leaflet` (sin `react-leaflet`), solo para el mapa y solo después del checkpoint 11:45.
+5. **Cambios grandes:** pedir confirmación antes de cambiar estructura, agregar dependencias o migrar de stack (**solo JSX, sin TypeScript**; sin librerías de componentes). Únicas dependencias nuevas autorizadas: `leaflet` (sin `react-leaflet`), solo para el mapa y solo después del checkpoint 11:45, y `lucide-react` para los íconos (ver §4). Todo lo visual se rige por [`DESING.md`](./DESING.md) y `skills/design.skill` (sistema de diseño municipal de Rancagua).
 6. **Idioma:** código, identificadores, endpoints, UI y commits en español (UI con "tú"). Conventional Commits (`feat: …`, `fix: …`).
 7. **Git:** ramas `feat/*` o `fix/*`; nada directo a `main`. **Antes de mergear:** correr las pruebas y, si cambió la IA, la evaluación live (sección 5).
 8. **Infra:** los agentes escriben Terraform pero **nunca corren `apply` ni `destroy`**; las credenciales de Huawei solo existen en la terminal de la persona que lo ejecuta.
@@ -50,7 +50,8 @@ Pitch y rúbrica en detalle: [PITCH.md](./PITCH.md) · Arranque y servidor: [REA
 backend/   main.py (rutas /api + manejo de errores) · kostra.py (mock/live, timeout, 429, errores) · analisis.py
            esquemas.py · prompts.py · bd.py · modelos.py · evaluacion/ (casos.json, evaluar.py) · pruebas/ (unittest)
 frontend/  src/App.jsx · src/Galeria.jsx (/?galeria) · src/api.js (fetch + SSE) · src/components/ (kit)
-design/    zero-day-estados/ (04 pantalla, 05 flujo del agente: referencia visual)
+design/    zero-day-estados/ (04 pantalla, 05 flujo del agente: referencia visual; la skill manda sobre ellos)
+skills/    design.skill (fuente de verdad de diseño: tokens, clases, reglas)
 infra/     Terraform Huawei (ECS + EIP + security group)      docker-compose.yml · setup.sh
 ```
 
@@ -60,7 +61,7 @@ Ya incluido (no rehacer): JSON validado con 1 reintento · evidencia verificada 
 
 ## 4. Kit de componentes (ver todos en `/?galeria`)
 
-Paleta **"Operación clara"** (tokens en `frontend/tailwind.config.js`, que **reemplaza** la paleta de Tailwind: `bg-red-500`, `text-slate-400`, etc. no existen y no generan estilo; nunca hex sueltos en `style`; un color nuevo se agrega solo ahí y con acuerdo del equipo): `fondo`, `superficie`, `sutil`, `borde`, `texto`/`texto2`/`texto3`, `acento` (+`-osc`, `-suave`), estados `ok`, `adv`, `parcial`, `critico` (con `-fondo`, `-borde`). Texto base 18px (proyector). Reglas: estado = color **+ ícono + texto**; un solo botón primario por pantalla; foco visible; `motion-reduce:`.
+**Diseño:** la fuente de verdad estética es **[`DESING.md`](./DESING.md)** (y `skills/design.skill`, sistema de diseño municipal de Rancagua). Léelo antes de tocar UI; manda sobre cualquier regla visual de este documento. Usa dos capas cromáticas: rojo vivo institucional (`muni-primary` `#C30101` y `muni-primary-a11y` `#AE0101` para contraste WCAG AA en botones primarios y Navbar `.cta-bg`) + sub-paleta Borgoña/Vino (`#8C1D28` y `rose-*` para tarjetas cálidas, sobretítulos, chips y estados de reposo, evitando fatiga visual), además de grises Tailwind, estados semánticos (`emerald`, `amber`, `red`, `blue`) y fuente **Open Sans** (`tabular-nums` en cifras). En `frontend/tailwind.config.js` se mantienen también los tokens del kit (`acento`, `texto`, `ok`, `adv`…). Reglas: estado = color **+ ícono + texto**; un solo botón primario por pantalla; anillo bicolor `:focus-visible`; `motion-reduce:`. Íconos con **`lucide-react`** (vía `Iconos.jsx`); animaciones por CSS (`animate-pulso`, `.page-content-transition`, `motion-reduce:`), sin `framer-motion`.
 
 | Componente | Uso |
 |---|---|
@@ -73,7 +74,7 @@ Paleta **"Operación clara"** (tokens en `frontend/tailwind.config.js`, que **re
 | `RazonamientoEnVivo`, `Cargando`, `AvisoEsperaLarga` | espera visible (reloj, pasos, aviso a los 20 s) |
 | `MensajeError`, `EstadoVacio` | error con Reintentar; vacío con ejemplos clicables |
 | `TarjetasResultado`, `Historial`, `PanelCalidad` | resultado (← adaptar), historial de la BD, calidad estilo auditorio |
-| `Iconos` | `<Icono nombre="…" />` en SVG, sin dependencias |
+| `Iconos` | `<Icono nombre="…" />` sobre `lucide-react` |
 
 ## 5. Comandos
 
