@@ -1,0 +1,326 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Encargado · Mapa de microbasurales por sector</title>
+<style>
+  :root{
+    --muni:#C30101;--muni-a11y:#AE0101;--muni-700:#D90000;--muni-50:#FFF0F0;--muni-100:#FFDCDC;--muni-200:#FFBFBF;--muni-900:#930909;
+    --vino:#8C1D28;--destacado:#FFF1D2;
+    --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;--g500:#6B7280;--g600:#4B5563;--g700:#374151;--g900:#111827;
+    --ok:#047857;--ok-f:#D1FAE5;--ok-b:#6EE7B7;--adv:#92400E;--adv-f:#FEF3C7;--adv-b:#FCD34D;--crit:#991B1B;--crit-f:#FEE2E2;--crit-b:#FCA5A5;
+    --sh-sm:0 1px 2px 0 rgb(0 0 0 / .05);--sh-md:0 4px 6px -1px rgb(0 0 0 / .1),0 2px 4px -2px rgb(0 0 0 / .1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--g100);color:var(--g900);font-size:16px;line-height:1.5}
+  .app{width:1440px;height:900px;display:flex;flex-direction:column;overflow:hidden;margin:0 auto}
+  svg{flex:none}
+
+  /* barra superior (igual a 01, en ancho) */
+  header.barra{background:linear-gradient(180deg,var(--muni),var(--muni-a11y));color:white;padding:14px 32px;display:flex;align-items:center;justify-content:space-between;flex:none}
+  .marca{display:flex;align-items:center;gap:10px}
+  .escudo{width:34px;height:34px;border-radius:9999px;background:white;color:var(--muni-a11y);display:grid;place-items:center;font-weight:700;font-size:15px}
+  .marca b{display:block;font-size:15px;line-height:1.2}
+  .marca span{font-size:13px;opacity:.92}
+  .der{display:flex;gap:10px;align-items:center}
+  .prototipo{display:inline-flex;align-items:center;font-size:12px;font-weight:600;background:rgb(255 255 255 / .16);border:1px solid rgb(255 255 255 / .35);padding:3px 10px;border-radius:9999px}
+  .live{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;color:var(--ok);background:white;border:1px solid var(--ok-b);padding:4px 12px;border-radius:9999px}
+  .punto{width:8px;height:8px;border-radius:9999px;background:var(--ok)}
+
+  /* franja de estado */
+  .franja{background:white;border-bottom:1px solid var(--g200);padding:8px 28px;display:flex;align-items:center;gap:10px;font-size:16px;color:var(--g700)}
+  .franja b{color:var(--g900);font-variant-numeric:tabular-nums}
+  .franja .sep{color:var(--g300)}
+  .franja .alta-txt{color:var(--crit);font-weight:700}
+
+  .cols{flex:1;min-height:0;display:grid;grid-template-columns:1fr 484px;gap:20px;padding:14px 28px}
+  .card{background:white;border:1px solid var(--g200);border-radius:12px;padding:16px;box-shadow:var(--sh-sm)}
+  .sobretitulo{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--g600);margin:0;font-weight:700}
+
+  .insignia{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:1px 10px;border-radius:9999px;border:1px solid;line-height:1.5}
+  .alta{color:var(--crit);background:var(--crit-f);border-color:var(--crit-b)}
+  .media{color:var(--adv);background:var(--adv-f);border-color:var(--adv-b)}
+  .baja{color:var(--g700);background:var(--g100);border-color:var(--g300)}
+  .sim{display:inline-flex;align-items:center;font-size:14px;font-weight:700;letter-spacing:.03em;color:var(--g600);background:var(--g100);border:1px dashed var(--g300);padding:1px 8px;border-radius:6px}
+
+  /* mapa */
+  .mapa{display:flex;flex-direction:column;gap:10px;min-height:0}
+  .mapa-cab{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .mapa-cab h1{font-size:20px;margin:0;font-weight:700}
+  .mapa-cab p{margin:0;font-size:14px;color:var(--g600)}
+  .lienzo-mapa{flex:1;min-height:0;background:var(--g50);border:1px solid var(--g200);border-radius:8px;display:grid;place-items:center;overflow:hidden}
+  .lienzo-mapa svg{width:100%;height:100%;display:block}
+  .ciudad{fill:var(--g100);stroke:var(--g200);stroke-width:2}
+  .s{fill:var(--g200);fill-opacity:.62;stroke:white;stroke-width:3;stroke-dasharray:9 6;stroke-linejoin:round}
+  .s-sel{fill:var(--muni-50);fill-opacity:.9;stroke:var(--muni-a11y);stroke-width:5;stroke-linejoin:round}
+  .via{fill:none;stroke:var(--g300);stroke-linecap:round;stroke-linejoin:round}
+  .via-ppal{stroke-width:9}
+  .via-eje{fill:none;stroke:white;stroke-width:1.6;stroke-dasharray:10 8}
+  .calle{fill:none;stroke:var(--g300);stroke-width:3;stroke-linecap:square}
+  .plaza{fill:var(--g300);stroke:white;stroke-width:2}
+  .tren{fill:none;stroke:var(--g500);stroke-width:2}
+  .tren-dur{fill:none;stroke:var(--g500);stroke-width:7;stroke-dasharray:1.5 7}
+  .estacion{fill:white;stroke:var(--g600);stroke-width:2.5}
+  .ref-lbl{fill:var(--g600);font:600 14px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .ref-lbl.it{font-style:italic;font-weight:400}
+  .halo{paint-order:stroke;stroke:white;stroke-width:4;stroke-linejoin:round}
+  .rosa{fill:var(--g50);stroke:var(--g300);stroke-width:2}
+  .rosa-n{fill:var(--g700)}.rosa-s{fill:var(--g300)}
+  .rosa-lbl{fill:var(--g700);font:700 15px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .esq{fill:var(--g600);font:400 14px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .s-lbl{fill:var(--g900);font:700 16px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .s-lbl.sel{fill:var(--muni-900);font-weight:700}
+  .s-sin{fill:var(--g600);font:400 15px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .m-crit{fill:var(--crit)}.m-adv{fill:var(--adv)}.m-baja{fill:var(--g600)}
+  .m-borde{stroke:white;stroke-width:3}
+  .m-ico{fill:none;stroke:white;stroke-width:2.6;stroke-linecap:round;stroke-linejoin:round}
+  .m-num{fill:white;font:700 18px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .anillo{fill:none;stroke:transparent;stroke-width:3}
+  .mk{cursor:pointer}
+  .mk:focus{outline:none}
+  .mk:focus-visible .anillo{stroke:var(--muni)}
+  .mk.sel .anillo{stroke:var(--g900)}
+  .rio{fill:none;stroke:var(--g300);stroke-width:22;stroke-linecap:round}
+  .rio-orilla{fill:none;stroke:white;stroke-width:26;stroke-linecap:round}
+  .rio-lbl{fill:var(--g500);font:italic 400 14px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+
+  .pie-mapa{display:flex;align-items:center;justify-content:space-between;gap:16px;flex-wrap:wrap}
+  .leyenda{display:flex;gap:16px;align-items:center;list-style:none;margin:0;padding:0;font-size:14px;color:var(--g700)}
+  .leyenda li{display:flex;align-items:center;gap:6px}
+  .bolita{width:24px;height:24px;border-radius:9999px;display:grid;place-items:center;color:white}
+  .b-crit{background:var(--crit)}.b-adv{background:var(--adv)}.b-baja{background:var(--g600)}
+  .nota-mapa{display:flex;align-items:center;gap:6px;font-size:14px;color:var(--g600)}
+
+  /* panel del sector */
+  .panel{display:flex;flex-direction:column;gap:10px;min-height:0;overflow:hidden}
+  .panel-cab h2{font-size:22px;margin:2px 0 0;font-weight:700;display:flex;align-items:center;gap:8px}
+  .panel-cab p{margin:2px 0 0;font-size:14px;color:var(--g600)}
+  .rep{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:white;border:1px solid var(--g200);border-radius:8px;padding:10px 14px;cursor:pointer}
+  .rep:hover{border-color:var(--g300);background:var(--g50)}
+  .rep.sel{border-color:var(--muni-200);background:var(--muni-50);border-left:3px solid var(--muni);padding-left:12px;cursor:default}
+  .l1{display:flex;align-items:center;gap:8px}
+  .edad{margin-left:auto;font-size:14px;color:var(--g600);font-variant-numeric:tabular-nums}
+  .tipo{font-size:16px;font-weight:700;margin:4px 0 0}
+  .resumen{font-size:16px;margin:2px 0 0;color:var(--g700)}
+  mark{background:var(--destacado);color:inherit;text-decoration:underline;text-decoration-color:var(--adv);text-decoration-thickness:2px;text-underline-offset:3px;padding:0 2px;border-radius:6px}
+  .ev{display:flex;align-items:center;gap:6px;font-size:14px;font-weight:700;color:var(--ok);margin-top:6px}
+
+  .accion{background:white;border:1px solid var(--g200);border-radius:8px;padding:12px 14px;display:flex;flex-direction:column;gap:10px}
+  .accion-tit{display:flex;align-items:center;gap:10px;font-size:18px;font-weight:700;margin:0}
+  .accion-ico{width:34px;height:34px;border-radius:8px;background:var(--muni-50);color:var(--vino);display:grid;place-items:center;border:1px solid var(--muni-100)}
+  .porque{margin:0;font-size:15px;color:var(--g700)}
+  .botones{display:grid;grid-template-columns:1fr 150px;gap:10px}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;font:inherit;font-size:17px;font-weight:600;color:white;background:var(--muni-a11y);border:0;border-radius:8px;cursor:pointer}
+  .btn:hover{background:var(--muni-700)}
+  .btn-sec{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:11px 14px;font:inherit;font-size:16px;font-weight:600;color:var(--g700);background:white;border:1px solid var(--g300);border-radius:8px;cursor:pointer}
+  .btn-sec:hover{background:var(--g50)}
+  .candado{display:flex;gap:8px;align-items:center;font-size:14px;color:var(--g600);margin:0}
+  .enlace{font-size:14px;font-weight:600;color:var(--muni-a11y);text-decoration:underline;background:none;border:0;padding:0;font-family:inherit;cursor:pointer;border-radius:6px}
+
+  .rep:focus-visible,.btn:focus-visible,.btn-sec:focus-visible,.enlace:focus-visible,a:focus-visible{outline:none;box-shadow:0 0 0 2px white,0 0 0 4px var(--muni)}
+  @media (prefers-reduced-motion:no-preference){
+    .rep,.btn,.btn-sec{transition:background-color .15s ease,border-color .15s ease}
+    .anillo{transition:stroke .15s ease}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="barra">
+    <div class="marca">
+      <div class="escudo" aria-hidden="true">R</div>
+      <div><b>Municipalidad de Rancagua</b><span>Gestión de Calidad</span></div>
+    </div>
+    <div class="der">
+      <span class="prototipo">Prototipo, no oficial</span>
+      <span class="live"><span class="punto" aria-hidden="true"></span>Kostra LIVE</span>
+    </div>
+  </header>
+
+  <div class="franja" role="status">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+    <span><b>8 reportes pendientes</b></span><span class="sep" aria-hidden="true">·</span>
+    <span class="alta-txt">3 de prioridad alta</span><span class="sep" aria-hidden="true">·</span>
+    <span>el más antiguo espera <b>2 días</b></span>
+  </div>
+
+  <div class="cols">
+
+    <!-- IZQUIERDA: mapa -->
+    <section class="card mapa" aria-labelledby="t-mapa">
+      <div class="mapa-cab">
+        <div>
+          <h1 id="t-mapa">Reportes pendientes por sector</h1>
+          <p>Toca un marcador para ver los reportes de ese sector.</p>
+        </div>
+        <span class="sim">Mapa simulado</span>
+      </div>
+
+      <div class="lienzo-mapa">
+        <svg viewBox="0 0 840 620" preserveAspectRatio="xMidYMid meet" role="group" aria-label="Mapa esquemático de Rancagua, no a escala, con 8 sectores aproximados (simulado) y marcadores de reportes pendientes">
+          <!-- base: mancha urbana (esquemática, no a escala) -->
+          <path class="ciudad" d="M96 84 L548 78 L800 92 L814 240 L812 400 L790 582 L540 590 L320 594 L104 588 L92 398 L98 238 Z"/>
+
+          <!-- sectores aproximados (simulado) -->
+          <polygon class="s" points="110,92 330,86 545,84 540,232 322,236 104,238"/>
+          <polygon class="s" points="545,84 790,100 800,240 540,232"/>
+          <polygon class="s" points="104,238 322,236 318,396 100,398"/>
+          <polygon class="s" points="322,236 540,232 545,392 318,396"/>
+          <polygon class="s" points="540,232 800,240 805,400 545,392"/>
+          <polygon class="s" points="100,398 318,396 322,584 112,578"/>
+          <polygon class="s" points="545,392 805,400 780,572 540,580"/>
+          <polygon class="s-sel" points="318,396 545,392 540,580 322,584"/>
+
+          <!-- Río Cachapoal (borde norte, fluye de oriente a poniente) -->
+          <path class="rio-orilla" d="M-10 60 C 160 74, 300 40, 460 50 S 720 34, 850 44"/>
+          <path class="rio" d="M-10 60 C 160 74, 300 40, 460 50 S 720 34, 850 44"/>
+          <text class="rio-lbl halo" x="470" y="30" text-anchor="middle">Río Cachapoal</text>
+
+          <!-- Ruta 5 Sur (poniente, norte–sur) -->
+          <path class="via via-ppal" d="M66 -10 C 70 200, 78 400, 70 630"/>
+          <path class="via-eje" d="M66 -10 C 70 200, 78 400, 70 630"/>
+          <text class="ref-lbl halo" transform="translate(54,520) rotate(-90)">Ruta 5 Sur</text>
+
+          <!-- Alameda (oriente–poniente por el centro) y Carretera del Cobre hacia Machalí -->
+          <path class="via via-ppal" d="M70 384 L545 378"/>
+          <path class="via via-ppal" d="M545 378 C 640 372, 720 356, 850 340"/>
+          <text class="ref-lbl halo" x="440" y="370" text-anchor="middle">Av. Libertador B. O'Higgins (Alameda)</text>
+          <text class="ref-lbl it halo" x="690" y="390" text-anchor="middle">Carretera del Cobre</text>
+          <text class="ref-lbl halo" x="834" y="326" text-anchor="end">→ Machalí</text>
+
+          <!-- damero del centro y Plaza de los Héroes -->
+          <path class="calle" d="M340 250 V328 M370 250 V328 M400 250 V328 M430 250 V328 M460 250 V328 M340 250 H460 M340 276 H460 M340 302 H460 M340 328 H460"/>
+          <rect class="plaza" x="374" y="278" width="22" height="22" rx="2"/>
+          <text class="ref-lbl halo" x="400" y="346" text-anchor="middle">Plaza de los Héroes</text>
+
+          <!-- línea férrea (norte–sur, al poniente del centro) -->
+          <path class="tren-dur" d="M300 -10 V630"/>
+          <path class="tren" d="M300 -10 V630"/>
+          <rect class="estacion" x="292" y="328" width="16" height="14" rx="2"/>
+          <text class="ref-lbl halo" x="288" y="346" text-anchor="end">Estación Rancagua</text>
+
+          <!-- rosa de los vientos -->
+          <g aria-hidden="true">
+            <circle class="rosa" cx="782" cy="528" r="26"/>
+            <polygon class="rosa-n" points="782,506 774,528 790,528"/>
+            <polygon class="rosa-s" points="774,528 790,528 782,550"/>
+            <text class="rosa-lbl halo" x="782" y="496" text-anchor="middle">N</text>
+          </g>
+
+          <text class="esq halo" x="312" y="612">Mapa esquemático de Rancagua · no a escala · sectores aproximados (simulado)</text>
+
+          <!-- nombres -->
+          <text class="s-lbl halo" x="420" y="170" text-anchor="middle">Rancagua Norte</text>
+          <text class="s-sin halo" x="420" y="192" text-anchor="middle">Sin pendientes</text>
+          <text class="s-lbl halo" x="670" y="204" text-anchor="middle">Nororiente</text>
+          <text class="s-lbl halo" x="200" y="322" text-anchor="middle">Poniente</text>
+          <text class="s-lbl halo" x="500" y="268" text-anchor="middle">Centro</text>
+          <text class="s-lbl halo" x="670" y="262" text-anchor="middle">Oriente</text>
+          <text class="s-lbl halo" x="205" y="518" text-anchor="middle">Surponiente</text>
+          <text class="s-lbl halo" x="660" y="480" text-anchor="middle">Suroriente</text>
+          <text class="s-sin halo" x="660" y="502" text-anchor="middle">Sin pendientes</text>
+          <text class="s-lbl sel halo" x="430" y="522" text-anchor="middle">Rancagua Sur</text>
+
+          <!-- marcadores: color = prioridad más alta pendiente, número = pendientes -->
+          <defs>
+            <g id="ico-alta"><path class="m-ico" d="M12 9v4M12 17h.01M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></g>
+            <g id="ico-media"><circle class="m-ico" cx="12" cy="12" r="10"/><path class="m-ico" d="M12 6v6l4 2"/></g>
+            <g id="ico-baja"><path class="m-ico" d="M12 5v14M19 12l-7 7-7-7"/></g>
+          </defs>
+
+          <g class="mk sel" tabindex="0" role="button" aria-pressed="true" aria-label="Rancagua Sur: 3 pendientes, prioridad más alta: alta" transform="translate(430,468)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-crit m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-alta" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">3</text>
+          </g>
+          <g class="mk" tabindex="0" role="button" aria-label="Poniente: 1 pendiente, prioridad más alta: alta" transform="translate(200,282)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-crit m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-alta" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">1</text>
+          </g>
+          <g class="mk" tabindex="0" role="button" aria-label="Surponiente: 1 pendiente, prioridad más alta: alta" transform="translate(205,466)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-crit m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-alta" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">1</text>
+          </g>
+          <g class="mk" tabindex="0" role="button" aria-label="Centro: 1 pendiente, prioridad más alta: media" transform="translate(500,304)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-adv m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-media" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">1</text>
+          </g>
+          <g class="mk" tabindex="0" role="button" aria-label="Oriente: 1 pendiente, prioridad más alta: media" transform="translate(670,298)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-adv m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-media" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">1</text>
+          </g>
+          <g class="mk" tabindex="0" role="button" aria-label="Nororiente: 1 pendiente, prioridad más alta: baja" transform="translate(670,152)">
+            <rect class="anillo" x="-42" y="-25" width="84" height="50" rx="25"/>
+            <rect class="m-baja m-borde" x="-36" y="-19" width="72" height="38" rx="19"/>
+            <use href="#ico-baja" transform="translate(-26,-9) scale(.75)"/>
+            <text class="m-num" x="12" y="6.5" text-anchor="middle">1</text>
+          </g>
+        </svg>
+      </div>
+
+      <div class="pie-mapa">
+        <ul class="leyenda" aria-label="Leyenda">
+          <li><span class="bolita b-crit" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg></span>Hay prioridad alta</li>
+          <li><span class="bolita b-adv" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg></span>Máximo media</li>
+          <li><span class="bolita b-baja" aria-hidden="true"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6" stroke-linecap="round" stroke-linejoin="round"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg></span>Solo baja</li>
+          <li>Número = reportes pendientes</li>
+        </ul>
+        <p class="nota-mapa" style="margin:0"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 16v-4"/><path d="M12 8h.01"/></svg>Mapa simulado: sectores aproximados, sin GPS</p>
+      </div>
+    </section>
+
+    <!-- DERECHA: panel del sector -->
+    <aside class="card panel" aria-labelledby="t-sector">
+      <div class="panel-cab">
+        <p class="sobretitulo" style="margin:0">Sector seleccionado</p>
+        <div style="display:flex;align-items:center;justify-content:space-between;gap:12px"><h2 id="t-sector"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--vino)"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>Rancagua Sur · 3 pendientes</h2><button class="enlace" type="button">Ver bandeja</button></div>
+      </div>
+
+      <div class="rep sel" aria-current="true">
+        <div class="l1"><span class="insignia alta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Alta</span><span class="sim">SIMULADO</span><span class="edad">hace 2 días</span></div>
+        <p class="tipo">Escombros y voluminoso</p>
+        <p class="resumen">Escombros y colchón <mark>justo al lado del colegio</mark>; los niños <mark>tienen que bajarse a la calle</mark>.</p>
+        <div class="ev"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>Evidencia verificada · 2 de 2</div>
+
+        <div class="accion" style="margin-top:10px">
+          <p class="sobretitulo">Acción propuesta</p>
+          <p class="accion-tit"><span class="accion-ico" aria-hidden="true"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>Enviar camión tolva</p>
+          <p class="porque">Escombros y un colchón no caben en una cuadrilla estándar. Falta saber: volumen aproximado.</p>
+          <div class="botones">
+            <button class="btn" type="button"><svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Aprobar despacho</button>
+            <button class="btn-sec" type="button"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>Rechazar</button>
+          </div>
+          <p class="candado"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>Nada se ejecuta sin tu aprobación · despacho simulado</p>
+        </div>
+      </div>
+
+      <button class="rep" type="button">
+        <div class="l1"><span class="insignia media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</span><span class="sim">SIMULADO</span><span class="edad">hace 1 día</span></div>
+        <p class="tipo">Basura domiciliaria</p>
+        <p class="resumen">Bolsas y cartones en la vereda de calle Carrera.</p>
+      </button>
+
+      <button class="rep" type="button">
+        <div class="l1"><span class="insignia baja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>Baja</span><span class="edad">hace 3 horas</span></div>
+        <p class="tipo">Basura domiciliaria</p>
+        <p class="resumen">Unas pocas bolsas junto al paradero; sin riesgo inmediato.</p>
+      </button>
+
+    </aside>
+
+  </div>
+</div>
+</body>
+</html>

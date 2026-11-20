@@ -1,0 +1,287 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1440, initial-scale=1">
+<title>Encargado · Bandeja de triage de microbasurales</title>
+<style>
+  :root{
+    --muni:#C30101;--muni-a11y:#AE0101;--muni-700:#D90000;--muni-50:#FFF0F0;--muni-100:#FFDCDC;--muni-200:#FFBFBF;--muni-900:#930909;
+    --vino:#8C1D28;--destacado:#FFF1D2;
+    --g50:#F9FAFB;--g100:#F3F4F6;--g200:#E5E7EB;--g300:#D1D5DB;--g500:#6B7280;--g600:#4B5563;--g700:#374151;--g900:#111827;
+    --ok:#047857;--ok-f:#D1FAE5;--ok-b:#6EE7B7;--adv:#92400E;--adv-f:#FEF3C7;--adv-b:#FCD34D;--crit:#991B1B;--crit-f:#FEE2E2;--crit-b:#FCA5A5;
+    --sh-sm:0 1px 2px 0 rgb(0 0 0 / .05);--sh-md:0 4px 6px -1px rgb(0 0 0 / .1),0 2px 4px -2px rgb(0 0 0 / .1);
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0;height:100%}
+  body{font-family:"Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;background:var(--g100);color:var(--g900);font-size:16px;line-height:1.5}
+  .app{width:1440px;height:900px;display:flex;flex-direction:column;overflow:hidden;margin:0 auto}
+  svg{flex:none}
+
+  /* barra superior (igual a 01, en ancho) */
+  header.barra{background:linear-gradient(180deg,var(--muni),var(--muni-a11y));color:white;padding:14px 28px;display:flex;align-items:center;justify-content:space-between;gap:16px}
+  .marca{display:flex;align-items:center;gap:10px}
+  .escudo{width:34px;height:34px;border-radius:9999px;background:white;color:var(--muni-a11y);display:grid;place-items:center;font-weight:700;font-size:15px}
+  .marca b{display:block;font-size:15px;line-height:1.2}
+  .marca span{font-size:13px;opacity:.92}
+  .derecha{display:flex;align-items:center;gap:10px}
+  .prototipo{display:inline-flex;align-items:center;gap:6px;font-size:12px;font-weight:600;background:rgb(255 255 255 / .16);border:1px solid rgb(255 255 255 / .35);padding:3px 10px;border-radius:9999px}
+  .live{display:inline-flex;align-items:center;gap:8px;font-size:14px;font-weight:700;background:white;color:var(--ok);border:1px solid var(--ok-b);padding:4px 12px;border-radius:9999px}
+  .punto{width:10px;height:10px;border-radius:9999px;background:var(--ok)}
+
+  /* franja de estado */
+  .franja{background:white;border-bottom:1px solid var(--g200);padding:8px 28px;display:flex;align-items:center;gap:10px;font-size:16px;color:var(--g700)}
+  .franja b{color:var(--g900);font-variant-numeric:tabular-nums}
+  .franja .sep{color:var(--g300)}
+  .franja .alta-txt{color:var(--crit);font-weight:700}
+
+  /* columnas */
+  .cols{flex:1;min-height:0;display:grid;grid-template-columns:380px 1fr 360px;gap:20px;padding:14px 28px}
+  .col{min-height:0;display:flex;flex-direction:column;gap:14px}
+
+  .card{background:white;border:1px solid var(--g200);border-radius:12px;padding:16px;box-shadow:var(--sh-sm)}
+  .sobretitulo{font-size:14px;letter-spacing:.06em;text-transform:uppercase;color:var(--g600);margin:0;font-weight:700}
+
+  /* insignias */
+  .insignia{display:inline-flex;align-items:center;gap:6px;font-size:14px;font-weight:700;padding:2px 10px;border-radius:9999px;border:1px solid;line-height:1.5}
+  .alta{color:var(--crit);background:var(--crit-f);border-color:var(--crit-b)}
+  .media{color:var(--adv);background:var(--adv-f);border-color:var(--adv-b)}
+  .baja{color:var(--g700);background:var(--g100);border-color:var(--g300)}
+  .okb{color:var(--ok);background:var(--ok-f);border-color:var(--ok-b)}
+  .sim{display:inline-flex;align-items:center;font-size:14px;font-weight:700;letter-spacing:.03em;color:var(--g600);background:var(--g100);border:1px dashed var(--g300);padding:1px 8px;border-radius:6px}
+
+  /* bandeja */
+  .bandeja{flex:1;min-height:0;display:flex;flex-direction:column;padding:0;overflow:hidden}
+  .bandeja-cab{padding:12px 16px 10px;border-bottom:1px solid var(--g100);display:flex;align-items:center;justify-content:space-between}
+  .bandeja-cab h2{font-size:18px;margin:0;font-weight:700}
+  .orden{font-size:14px;color:var(--g600)}
+  .lista{list-style:none;margin:0;padding:8px;display:flex;flex-direction:column;gap:6px;overflow:auto;flex:1}
+  .item{display:block;width:100%;text-align:left;font:inherit;color:inherit;background:white;border:1px solid var(--g200);border-radius:8px;padding:7px 12px;cursor:pointer}
+  .item:hover{border-color:var(--g300);background:var(--g50)}
+  .item.sel{border-color:var(--muni-200);background:var(--muni-50);border-left:3px solid var(--muni);padding-left:10px}
+  .item.hecho{opacity:.62;background:var(--g50)}
+  .item .insignia{padding:0 9px}
+  .grupo{list-style:none;margin:8px 0 0;padding:0;display:flex;flex-direction:column;gap:6px}
+  .grupo li{display:flex;align-items:center;gap:10px;font-size:15px;padding:8px 12px;border:1px solid var(--g100);background:var(--g50);border-radius:8px}
+  .grupo li .edad{margin-left:auto}
+  .l1{display:flex;align-items:center;gap:8px}
+  .edad{margin-left:auto;font-size:14px;color:var(--g600);font-variant-numeric:tabular-nums}
+  .l2{font-size:16px;font-weight:600;margin-top:3px;line-height:1.3;white-space:nowrap;overflow:hidden;text-overflow:ellipsis}
+  .l2 span{font-weight:400;color:var(--g600)}
+  .l3{display:flex;align-items:center;gap:6px;margin-top:1px;font-size:14px;color:var(--vino);font-weight:600}
+
+  /* análisis */
+  .analisis{flex:1;min-height:0;display:flex;flex-direction:column;gap:13px;padding:18px 24px}
+  .meta{display:flex;align-items:center;gap:10px;flex-wrap:wrap;font-size:14px;color:var(--g600)}
+  h1{font-size:24px;line-height:1.3;margin:6px 0 0;font-weight:700}
+  .original{background:var(--g50);border:1px solid var(--g200);border-radius:8px;padding:14px 16px;font-size:17px;line-height:1.7;color:var(--g900);margin:0}
+  mark{background:var(--destacado);color:inherit;text-decoration:underline;text-decoration-color:var(--adv);text-decoration-thickness:2px;text-underline-offset:3px;padding:1px 2px;border-radius:6px}
+  .ev-cab{display:flex;align-items:center;gap:8px;font-size:15px;font-weight:700;color:var(--ok)}
+  .chips{display:flex;flex-wrap:wrap;gap:8px;margin-top:8px}
+  .chip{display:inline-flex;align-items:center;gap:6px;font-size:15px;background:var(--destacado);border:1px solid var(--adv-b);color:var(--adv);padding:4px 12px;border-radius:9999px}
+  .datos{display:grid;grid-template-columns:repeat(3,1fr);gap:12px}
+  .dato{border:1px solid var(--g100);background:var(--g50);border-radius:8px;padding:10px 12px}
+  .dato small{display:block;font-size:14px;color:var(--g600)}
+  .dato b{display:flex;align-items:center;gap:6px;font-size:16px;margin-top:2px}
+  .falta{display:flex;gap:10px;align-items:flex-start;background:var(--destacado);border:1px solid var(--adv-b);border-radius:8px;padding:10px 12px;font-size:16px;color:var(--adv)}
+  .falta svg{margin-top:3px}
+  .pie-analisis{margin-top:auto;font-size:14px;color:var(--g500);display:flex;align-items:center;gap:8px}
+
+  /* acción */
+  .accion{display:flex;flex-direction:column;gap:14px}
+  .accion-tit{display:flex;align-items:center;gap:10px;font-size:22px;font-weight:700;line-height:1.25;margin:0}
+  .accion-ico{width:40px;height:40px;border-radius:8px;background:var(--muni-50);color:var(--vino);display:grid;place-items:center;border:1px solid var(--muni-100)}
+  .porque{margin:0;font-size:16px;color:var(--g700)}
+  .sector{display:flex;align-items:center;gap:10px;border:1px solid var(--g100);background:var(--g50);border-radius:8px;padding:10px 12px;font-size:15px}
+  .sector b{display:block;font-size:16px}
+  .sector span{color:var(--vino);font-weight:600}
+  .btn{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:14px 18px;font:inherit;font-size:17px;font-weight:600;color:white;background:var(--muni-a11y);border:0;border-radius:8px;cursor:pointer}
+  .btn:hover{background:var(--muni-700)}
+  .btn-sec{display:inline-flex;align-items:center;justify-content:center;gap:8px;width:100%;padding:12px 16px;font:inherit;font-size:16px;font-weight:600;color:var(--g700);background:white;border:1px solid var(--g300);border-radius:8px;cursor:pointer}
+  .btn-sec:hover{background:var(--g50)}
+  .candado{display:flex;gap:8px;align-items:flex-start;font-size:14px;color:var(--g600);margin:0}
+  .candado svg{margin-top:2px}
+
+  /* mini mapa */
+  .mapa-mini h2{font-size:16px;margin:0 0 8px;font-weight:700;display:flex;align-items:center;justify-content:space-between}
+  .mapa-mini svg{display:block;width:100%;height:auto;border-radius:8px;background:var(--g50);border:1px solid var(--g200)}
+  .s{fill:var(--g200);stroke:white;stroke-width:3}
+  .s-sel{fill:var(--muni-50);stroke:var(--muni);stroke-width:4}
+  .m-crit{fill:var(--crit)}.m-adv{fill:var(--adv)}.m-baja{fill:var(--g600)}
+  .m-num{fill:white;font:700 15px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .s-lbl{fill:var(--g700);font:600 14px "Open Sans",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+  .enlace{font-size:14px;font-weight:600;color:var(--muni-a11y);text-decoration:underline;background:none;border:0;padding:0;font-family:inherit;cursor:pointer;border-radius:6px}
+
+  .item:focus-visible,.btn:focus-visible,.btn-sec:focus-visible,.enlace:focus-visible,a:focus-visible{outline:none;box-shadow:0 0 0 2px white,0 0 0 4px var(--muni)}
+  .sr-only{position:absolute;width:1px;height:1px;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap}
+  @media (prefers-reduced-motion:no-preference){
+    .item,.btn,.btn-sec{transition:background-color .15s ease,border-color .15s ease}
+  }
+</style>
+</head>
+<body>
+<div class="app">
+
+  <header class="barra">
+    <div class="marca">
+      <div class="escudo" aria-hidden="true">R</div>
+      <div><b>Municipalidad de Rancagua</b><span>Gestión de Calidad</span></div>
+    </div>
+    <div class="derecha">
+      <span class="prototipo">Prototipo, no oficial</span>
+      <span class="live" role="status"><span class="punto" aria-hidden="true"></span>Kostra LIVE</span>
+    </div>
+  </header>
+
+  <div class="franja" role="status">
+    <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 12h-6l-2 3h-4l-2-3H2"/><path d="M5.45 5.11 2 12v6a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-6l-3.45-6.89A2 2 0 0 0 16.76 4H7.24a2 2 0 0 0-1.79 1.11z"/></svg>
+    <span><b>8 reportes pendientes</b></span><span class="sep" aria-hidden="true">·</span>
+    <span class="alta-txt">3 de prioridad alta</span><span class="sep" aria-hidden="true">·</span>
+    <span>el más antiguo espera <b>2 días</b></span>
+  </div>
+
+  <div class="cols">
+
+    <!-- IZQUIERDA: bandeja -->
+    <section class="col" aria-labelledby="t-bandeja">
+      <div class="card bandeja">
+        <div class="bandeja-cab">
+          <h2 id="t-bandeja">Bandeja</h2>
+          <span class="orden">8 pendientes · 1 decidido</span>
+        </div>
+        <ul class="lista">
+          <li><button class="item sel" type="button" aria-current="true">
+            <div class="l1"><span class="insignia alta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Alta</span><span class="sim">SIMULADO</span><span class="edad">hace 2 días</span></div>
+            <div class="l2">Escombros y voluminoso <span>· Rancagua Sur</span></div>
+            <div class="l3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>3 reportes en este sector</div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia alta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Alta</span><span class="sim">SIMULADO</span><span class="edad">hace 1 día</span></div>
+            <div class="l2">Quema de basura <span>· Poniente</span></div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia alta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Alta</span><span class="edad">hace 5 horas</span></div>
+            <div class="l2">Residuo peligroso <span>· Surponiente</span></div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</span><span class="sim">SIMULADO</span><span class="edad">hace 2 días</span></div>
+            <div class="l2">Voluminoso <span>· Oriente</span></div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</span><span class="sim">SIMULADO</span><span class="edad">hace 1 día</span></div>
+            <div class="l2">Basura domiciliaria <span>· Rancagua Sur</span></div>
+            <div class="l3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>3 reportes en este sector</div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</span><span class="edad">hace 20 horas</span></div>
+            <div class="l2">Basura domiciliaria <span>· Centro</span></div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia baja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>Baja</span><span class="sim">SIMULADO</span><span class="edad">hace 6 horas</span></div>
+            <div class="l2">Restos de poda <span>· Nororiente</span></div>
+          </button></li>
+          <li><button class="item" type="button">
+            <div class="l1"><span class="insignia baja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>Baja</span><span class="edad">hace 3 horas</span></div>
+            <div class="l2">Basura domiciliaria <span>· Rancagua Sur</span></div>
+            <div class="l3"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M22 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>3 reportes en este sector</div>
+          </button></li>
+          <li><button class="item hecho" type="button">
+            <div class="l1"><span class="insignia okb"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>Aprobado</span><span class="sim">SIMULADO</span><span class="edad">hoy 09:40</span></div>
+            <div class="l2">Voluminoso <span>· Rancagua Norte</span></div>
+          </button></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- CENTRO: análisis -->
+    <section class="col" aria-labelledby="t-analisis">
+      <article class="card analisis">
+        <div>
+          <div class="meta">
+            <span class="insignia alta"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 9v4"/><path d="M12 17h.01"/><path d="M10.3 3.9 1.8 18a2 2 0 0 0 1.7 3h17a2 2 0 0 0 1.7-3L13.7 3.9a2 2 0 0 0-3.4 0Z"/></svg>Prioridad alta</span>
+            <span class="sim">SIMULADO</span>
+            <span>Folio <b class="folio">#0127</b> · Rancagua Sur · hace 2 días</span>
+          </div>
+          <h1 id="t-analisis">Escombros y colchón junto a un colegio; obliga a los niños a pasar por la calle.</h1>
+        </div>
+
+        <div>
+          <p class="sobretitulo" style="margin-bottom:8px">Lo que escribió el vecino</p>
+          <p class="original">Botaron escombros y un colchón en la esquina del pasaje Los Aromos con Av. España, <mark>justo al lado del colegio</mark>. Los niños <mark>tienen que bajarse a la calle</mark> para pasar. Lleva así desde el fin de semana.</p>
+        </div>
+
+        <div>
+          <div class="ev-cab"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><path d="m9 11 3 3L22 4"/></svg>Evidencia verificada · 2 de 2</div>
+          <div class="chips">
+            <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>justo al lado del colegio</span>
+            <span class="chip"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M3 21c3 0 7-1 7-8V5c0-1.25-.756-2.017-2-2H4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2 1 0 1 0 1 1v1c0 1-1 2-2 2s-1 .008-1 1.031V20c0 1 0 1 1 1z"/><path d="M15 21c3 0 7-1 7-8V5c0-1.25-.757-2.017-2-2h-4c-1.25 0-2 .75-2 1.972V11c0 1.25.75 2 2 2h.75c0 2.25.25 4-2.75 4v3c0 1 0 1 1 1z"/></svg>tienen que bajarse a la calle</span>
+          </div>
+        </div>
+
+        <div class="datos">
+          <div class="dato"><small>Tipo de residuo</small><b>Mixto: escombros y voluminoso</b></div>
+          <div class="dato"><small>Peligrosidad</small><b><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--adv)"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</b></div>
+          <div class="dato"><small>Por qué es alta</small><b>Junto a un colegio</b></div>
+        </div>
+
+        <div class="falta" role="note">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M9.09 9a3 3 0 0 1 5.83 1c0 2-3 3-3 3"/><path d="M12 17h.01"/></svg>
+          <span><b>Falta saber:</b> volumen aproximado (¿cabe en una camioneta o necesita camión?)</span>
+        </div>
+
+        <div>
+          <p class="sobretitulo">Otros 2 reportes en Rancagua Sur</p>
+          <ul class="grupo">
+            <li><span class="insignia media"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><circle cx="12" cy="12" r="10"/><path d="M12 6v6l4 2"/></svg>Media</span><span>Bolsas y cartones en la vereda de calle Carrera</span><span class="edad">hace 1 día</span></li>
+            <li><span class="insignia baja"><svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M12 5v14"/><path d="m19 12-7 7-7-7"/></svg>Baja</span><span>Unas bolsas junto al paradero</span><span class="edad">hace 3 horas</span></li>
+          </ul>
+        </div>
+
+        <p class="pie-analisis"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="2"/><rect x="9" y="9" width="6" height="6"/><path d="M15 2v2M15 20v2M2 15h2M2 9h2M20 15h2M20 9h2M9 2v2M9 20v2"/></svg>Analizado con Kostra LIVE · deepseek-v4.1-flash · 2,9 s</p>
+      </article>
+    </section>
+
+    <!-- DERECHA: acción propuesta + mini mapa -->
+    <aside class="col" aria-labelledby="t-accion">
+      <div class="card accion">
+        <p class="sobretitulo" id="t-accion">Acción propuesta</p>
+        <h2 class="accion-tit"><span class="accion-ico" aria-hidden="true"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 18V6a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2v11a1 1 0 0 0 1 1h2"/><path d="M15 18H9"/><path d="M19 18h2a1 1 0 0 0 1-1v-3.65a1 1 0 0 0-.22-.624l-3.48-4.35A1 1 0 0 0 17.52 8H14"/><circle cx="17" cy="18" r="2"/><circle cx="7" cy="18" r="2"/></svg></span>Enviar camión tolva</h2>
+        <p class="porque">Escombros y un colchón no caben en una cuadrilla estándar, y el reporte dice que está <b>justo al lado del colegio</b>.</p>
+        <div class="sector">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true" style="color:var(--vino)"><path d="M20 10c0 4.993-5.539 10.193-7.399 11.799a1 1 0 0 1-1.202 0C9.539 20.193 4 14.993 4 10a8 8 0 0 1 16 0"/><circle cx="12" cy="10" r="3"/></svg>
+          <div><b>Rancagua Sur</b><span>3 reportes pendientes aquí</span></div>
+        </div>
+        <button class="btn" type="button">
+          <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M20 6 9 17l-5-5"/></svg>
+          Aprobar despacho
+        </button>
+        <button class="btn-sec" type="button">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+          Rechazar
+        </button>
+        <p class="candado"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg><span>Nada se ejecuta sin tu aprobación · despacho simulado</span></p>
+      </div>
+
+      <div class="card mapa-mini">
+        <h2>Rancagua Sur en el mapa <span class="sim">Mapa simulado</span></h2>
+        <svg viewBox="0 0 320 170" role="img" aria-label="Mapa simulado: Rancagua Sur resaltado con 3 reportes pendientes de prioridad alta">
+          <polygon class="s" points="20,20 150,12 160,62 110,70 30,72"/>
+          <polygon class="s" points="150,12 300,22 290,66 160,62"/>
+          <polygon class="s" points="30,72 110,70 112,110 26,112"/>
+          <polygon class="s" points="110,70 160,62 210,66 214,108 112,110"/>
+          <polygon class="s" points="210,66 290,66 296,112 214,108"/>
+          <polygon class="s" points="26,112 112,110 106,158 22,156"/>
+          <polygon class="s-sel" points="112,110 214,108 220,160 106,158"/>
+          <polygon class="s" points="214,108 296,112 300,160 220,160"/>
+          <text class="s-lbl" x="132" y="92">Centro</text>
+          <circle class="m-crit" cx="163" cy="134" r="15"/>
+          <text class="m-num" x="163" y="139.5" text-anchor="middle">3</text>
+        </svg>
+        <button class="enlace" type="button" style="margin-top:8px">Ver todos los sectores en el mapa</button>
+      </div>
+    </aside>
+
+  </div>
+</div>
+</body>
+</html>
