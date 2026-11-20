@@ -1,5 +1,4 @@
 import { useEffect, useState } from "react";
-import { obtenerSalud } from "../api";
 
 const VISTAS = [
   { id: "vecino", nombre: "Vecino", detalle: "Reportar un microbasural" },
@@ -7,85 +6,96 @@ const VISTAS = [
 ];
 
 /**
- * Estado discreto de la IA: en LIVE solo un punto + texto; MOCK y sin conexión se ven siempre (honestidad).
+ * Navbar institucional de Rancagua reutilizable en todas las vistas:
+ * - Sticky header con `.cta-bg` (gradiente municipal) y borde inferior sutil con sombra al hacer scroll.
+ * - Logo oficial blanco `logo-muni-blanco.png` con separador vertical `bg-white/30`.
+ * - Título doble línea institucional (sobretítulo uppercase tracking-[0.18em] + título de la plataforma).
+ * - Selector de vistas (Vecino / Encargado) tipo píldora municipal interactivo.
+ *
+ * @param {object} props
+ * @param {"vecino" | "encargado"} [props.vista] Vista actual activa (opcional, si no se pasa detecta URL)
+ * @param {React.ReactNode} [props.children] Acciones adicionales al extremo derecho (opcional)
+ * @param {string} [props.className] Clases adicionales de estilo
  */
-function EstadoIA() {
-  const [estado, setEstado] = useState(null); // null | "live" | "mock" | "error"
+export default function BarraMunicipal({ vista: vistaProp, children, className = "" }) {
+  const [isScrolled, setIsScrolled] = useState(false);
+
+  // Si no viene vista por prop, leer de URL o default a "vecino"
+  const vistaActual =
+    vistaProp ||
+    (typeof window !== "undefined" && new URLSearchParams(window.location.search).get("vista") === "encargado"
+      ? "encargado"
+      : "vecino");
+
   useEffect(() => {
-    let vivo = true;
-    obtenerSalud()
-      .then((s) => vivo && setEstado(s?.modo_ia === "live" ? "live" : "mock"))
-      .catch(() => vivo && setEstado("error"));
-    return () => {
-      vivo = false;
+    const handleScroll = () => {
+      setIsScrolled(window.scrollY > 16);
     };
+    handleScroll();
+    window.addEventListener("scroll", handleScroll, { passive: true });
+    return () => window.removeEventListener("scroll", handleScroll);
   }, []);
 
-  if (estado === "live") {
-    return (
-      <span role="status" className="inline-flex items-center gap-2 text-sm text-white/90">
-        <span aria-hidden="true" className="h-2 w-2 rounded-full bg-white/80" />
-        IA en línea
-      </span>
-    );
-  }
-  if (estado === "mock") {
-    return (
-      <span role="status" className="rounded-full border border-adv-borde bg-adv-fondo px-3 py-0.5 text-sm font-semibold text-adv">
-        IA simulada (MOCK)
-      </span>
-    );
-  }
-  if (estado === "error") {
-    return (
-      <span role="status" className="rounded-full border border-critico-borde bg-white px-3 py-0.5 text-sm font-semibold text-critico">
-        Sin conexión con el servidor
-      </span>
-    );
-  }
-  return null;
-}
-
-/**
- * Barra roja institucional (diseño 03/04): marca, pestañas Vecino/Encargado y estado discreto de la IA.
- * Las pestañas son enlaces ?vista=… (sin router).
- * @param {{ vista: "vecino" | "encargado" }} props
- */
-export default function BarraMunicipal({ vista }) {
   return (
-    <header className="bg-navbar text-white">
-      <div className="container flex items-center justify-between gap-6 py-3">
-        <div className="flex items-center gap-3">
-          <div aria-hidden="true" className="grid h-9 w-9 place-items-center rounded-full bg-white text-[15px] font-bold text-muni-primary-a11y">
-            R
-          </div>
-          <div className="leading-tight">
-            <p className="text-[15px] font-bold">Municipalidad de Rancagua</p>
-            <p className="text-[13px] opacity-90">Gestión de Calidad · Microbasurales</p>
-          </div>
+    <header
+      className={`sticky top-0 z-40 transition-shadow duration-200 print:hidden cta-bg border-b border-white/10 ${
+        isScrolled ? "shadow-lg" : "shadow-none"
+      } ${className}`}
+    >
+      <div className="container flex items-center justify-between gap-4 py-2 sm:py-2.5">
+        {/* Lado izquierdo: Logo oficial + Identidad */}
+        <div className="flex items-center min-w-0">
+          <a
+            href="/"
+            aria-label="Ir al inicio - Gestión de Microbasurales"
+            className="flex items-center gap-3 sm:gap-4 rounded-lg py-1 pr-1 text-white shrink-0 group focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-white"
+          >
+            <img
+              src="/logo-muni-blanco.png"
+              alt="Municipalidad de Rancagua"
+              className="w-auto h-8 sm:h-9 object-contain transition-transform duration-200 group-hover:scale-101"
+            />
+
+            {/* Separador vertical y subtítulos */}
+            <span aria-hidden="true" className="hidden sm:block h-8 w-px bg-white/30" />
+            <div className="hidden sm:flex flex-col gap-1 leading-none">
+              <span className="text-2xs font-semibold uppercase tracking-[0.18em] text-white/70">
+                Municipalidad de Rancagua
+              </span>
+              <span className="text-base font-semibold tracking-tight text-white">
+                Gestión de Microbasurales
+              </span>
+            </div>
+          </a>
         </div>
 
-        <nav aria-label="Vistas del prototipo" className="flex items-center gap-1 rounded-full bg-white/15 p-1">
-          {VISTAS.map((v) => {
-            const activa = v.id === vista;
-            return (
-              <a
-                key={v.id}
-                href={`?vista=${v.id}`}
-                aria-current={activa ? "page" : undefined}
-                title={v.detalle}
-                className={`rounded-full px-5 py-1.5 text-[15px] font-semibold transition-colors focus:outline-none focus-visible:ring-2 focus-visible:ring-white focus-visible:ring-offset-2 focus-visible:ring-offset-muni-primary-a11y ${
-                  activa ? "bg-white text-muni-primary-a11y shadow-sm" : "text-white hover:bg-white/20"
-                }`}
-              >
-                {v.nombre}
-              </a>
-            );
-          })}
-        </nav>
+        {/* Lado derecho: Selector sutil a la derecha + children opcionales */}
+        <div className="flex items-center gap-3 shrink-0">
+          {children}
 
-        <div className="flex min-w-[220px] items-center justify-end">
-          <EstadoIA />
+          <nav
+            aria-label="Vistas de la plataforma"
+            className="flex items-center gap-0.5 rounded-lg border border-white/15 bg-black/10 p-1 backdrop-blur-xs"
+          >
+            {VISTAS.map((v) => {
+              const activa = v.id === vistaActual;
+              return (
+                <a
+                  key={v.id}
+                  href={`?vista=${v.id}`}
+                  aria-current={activa ? "page" : undefined}
+                  title={v.detalle}
+                  className={`rounded-md px-3 py-1 text-xs font-medium transition-all focus:outline-none focus-visible:ring-2 focus-visible:ring-white ${
+                    activa
+                      ? "bg-white/20 text-white shadow-xs font-semibold"
+                      : "text-white/70 hover:text-white hover:bg-white/10"
+                  }`}
+                >
+                  {v.nombre}
+                </a>
+              );
+            })}
+          </nav>
         </div>
       </div>
     </header>

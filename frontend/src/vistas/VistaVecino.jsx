@@ -235,36 +235,36 @@ export default function VistaVecino() {
       : null;
 
   return (
-    <div className="container flex h-full min-h-0 flex-col gap-3 pb-4 pt-5">
-    <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] grid-cols-[minmax(0,7fr)_minmax(0,5fr)] gap-6">
-      <ChatAsistente
-        mensajes={mensajes}
-        chips={listaChips}
-        escribiendo={escribiendo}
-        bloqueado={Boolean(reporte)}
-        alEnviar={(t) => enviarTexto(t)}
-      />
-      {reporte ? (
-        <ExitoReporte reporte={reporte} alReiniciar={reiniciar} />
-      ) : (
-        <PanelReporte
-          filas={filas}
-          esperados={resultado ? filas.length : 5}
-          visibles={resultado ? visibles : 0}
-          listos={listos}
-          total={total}
-          completo={completo}
-          puedeEnviar={puedeEnviar}
-          faltan={Math.max(1, total - listos)}
-          noEsResiduo={noEsResiduo}
-          enviando={enviando}
-          alEnviar={enviarFinal}
+    <div className="container flex min-h-0 flex-1 flex-col gap-2 overflow-hidden py-3 sm:py-4">
+      <div className="grid min-h-0 flex-1 grid-rows-[minmax(0,1fr)] grid-cols-1 lg:grid-cols-[minmax(0,1.25fr)_minmax(0,1fr)] gap-4 sm:gap-5">
+        <ChatAsistente
+          mensajes={mensajes}
+          chips={listaChips}
+          escribiendo={escribiendo}
+          bloqueado={Boolean(reporte)}
+          alEnviar={(t) => enviarTexto(t)}
         />
-      )}
-    </div>
+        {reporte ? (
+          <ExitoReporte reporte={reporte} alReiniciar={reiniciar} />
+        ) : (
+          <PanelReporte
+            filas={filas}
+            esperados={resultado ? filas.length : 5}
+            visibles={resultado ? visibles : 0}
+            listos={listos}
+            total={total}
+            completo={completo}
+            puedeEnviar={puedeEnviar}
+            faltan={Math.max(1, total - listos)}
+            noEsResiduo={noEsResiduo}
+            enviando={enviando}
+            alEnviar={enviarFinal}
+          />
+        )}
+      </div>
       {nota && (
-        <p className="flex shrink-0 items-center gap-2 text-sm text-gray-500">
-          <Info aria-hidden="true" className="h-4 w-4" />
+        <p className="flex shrink-0 items-center gap-1.5 text-xs text-gray-500">
+          <Info aria-hidden="true" className="h-3.5 w-3.5" />
           {nota}
         </p>
       )}
