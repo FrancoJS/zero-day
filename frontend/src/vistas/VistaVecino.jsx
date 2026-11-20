@@ -66,8 +66,15 @@ export default function VistaVecino() {
   const puedeEnviar = completo;
   const texto = textos.join("\n");
 
-  const agregar = (...nuevos) =>
+  // Última pregunta del asistente: se manda a la IA junto a la respuesta del vecino para que no la repita.
+  const ultimaPregunta = useRef(null);
+  const agregar = (...nuevos) => {
+    for (const n of nuevos) {
+      if (n.rol !== "bot") continue;
+      ultimaPregunta.current = n.pregunta || (n.contenido || "").match(/¿[^?]*\?/)?.[0] || null;
+    }
     setMensajes((m) => [...m, ...nuevos.map((n) => ({ id: idRef.current++, hora: hora(), ...n }))]);
+  };
 
   const marcarEjemplo = (e) => e && setEjemplo(true);
 
@@ -169,7 +176,11 @@ export default function VistaVecino() {
   const enviarTexto = (t, sid = sectorId) => {
     if (preguntaPendiente) setRespondidos((n) => n + 1);
     setPreguntaPendiente(false);
-    const lista = [...textos, t];
+    // La IA recibe la conversación con estructura: así sabe qué ya se respondió y no vuelve a preguntarlo.
+    const turno = ultimaPregunta.current && textos.length
+      ? `Pregunta del asistente: ${ultimaPregunta.current}\nRespuesta del vecino: ${t}`
+      : t;
+    const lista = [...textos, turno];
     setTextos(lista);
     agregar({ rol: "yo", contenido: t });
     analizar(lista, sid);
