@@ -21,10 +21,13 @@ const saludo = () => ({ id: 0, rol: "bot", contenido: SALUDO });
 // Reconoce el sector si el vecino lo escribe ("es en Rancagua Sur"): nombres más largos primero
 // (Suroriente antes que Oriente), sin tildes ni mayúsculas y con límites de palabra.
 const normalizar = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+// "centro" también es "centro comercial/de salud/…": eso no es el sector Centro.
+const NO_ES_SECTOR = /centro (comercial|de salud|medico|cultural|deportivo|educacional|comunitario|de la ciudad|familiar)/g;
+// Si menciona más de un sector, no adivina: se le pregunta con los botones.
 export function detectarSector(texto, sectores) {
-  const limpio = ` ${normalizar(texto)} `;
-  const candidatos = [...sectores].sort((a, b) => b.nombre.length - a.nombre.length);
-  return candidatos.find((s) => new RegExp(`[^a-z]${normalizar(s.nombre)}[^a-z]`).test(limpio))?.id ?? null;
+  const limpio = ` ${normalizar(texto).replace(NO_ES_SECTOR, " ")} `;
+  const hallados = sectores.filter((s) => new RegExp(`[^a-z]${normalizar(s.nombre)}[^a-z]`).test(limpio));
+  return hallados.length === 1 ? hallados[0].id : null;
 }
 
 export default function VistaVecino() {
@@ -131,7 +134,8 @@ export default function VistaVecino() {
       const sectorObj = sectores.find((s) => s.id === sid) || (sid ? { id: sid, nombre: sid } : null);
       revelar(filasDelReporte(sectorObj, r).length, lista.length > 1 ? 1 : 0);
 
-      if (r.tipo_residuo === "no_es_residuo") {
+      // "No es residuo" de verdad (luminarias, baches…). Si la IA solo no entendió y pide datos, la conversación sigue.
+      if (r.tipo_residuo === "no_es_residuo" && r.accion_sugerida !== "pedir_mas_datos") {
         setPreguntaPendiente(false);
         setChips(null);
         agregar({
@@ -139,7 +143,7 @@ export default function VistaVecino() {
           contenido:
             r.respuesta_vecino ||
             "Este canal es solo para basura y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
-          pregunta: "Si además viste basura botada, cuéntamelo y lo agrego.",
+          pregunta: /[¿?]/.test(r.respuesta_vecino || "") ? null : "Si además viste basura botada, cuéntamelo y lo agrego.",
         });
         return;
       }
