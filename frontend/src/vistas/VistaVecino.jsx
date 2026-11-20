@@ -134,7 +134,8 @@ export default function VistaVecino() {
       const sectorObj = sectores.find((s) => s.id === sid) || (sid ? { id: sid, nombre: sid } : null);
       revelar(filasDelReporte(sectorObj, r).length, lista.length > 1 ? 1 : 0);
 
-      if (r.tipo_residuo === "no_es_residuo") {
+      // "No es residuo" de verdad (luminarias, baches…). Si la IA solo no entendió y pide datos, la conversación sigue.
+      if (r.tipo_residuo === "no_es_residuo" && r.accion_sugerida !== "pedir_mas_datos") {
         setPreguntaPendiente(false);
         setChips(null);
         agregar({
@@ -142,7 +143,7 @@ export default function VistaVecino() {
           contenido:
             r.respuesta_vecino ||
             "Este canal es solo para basura y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
-          pregunta: "Si además viste basura botada, cuéntamelo y lo agrego.",
+          pregunta: /[¿?]/.test(r.respuesta_vecino || "") ? null : "Si además viste basura botada, cuéntamelo y lo agrego.",
         });
         return;
       }
