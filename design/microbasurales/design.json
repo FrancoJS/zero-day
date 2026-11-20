@@ -1,1 +1,35 @@
-{"title":"Microbasurales · Gestión de Calidad","brief":"Triage municipal de reportes de microbasurales: vista vecino y vista encargado","feature":"odd/tasks/microbasurales.md","artboards":[{"file":"01-vecino-reporte.html","title":"Vecino: reportar y confirmación (escritorio)","tradeoff":"Simple y tranquilizador; muestra lo que entendió la IA sin jerga","width":1440,"height":900},{"file":"02-encargado-bandeja.html","title":"Encargado: bandeja de triage","tradeoff":"Densa y rápida para decidir; el mapa queda secundario","width":1440,"height":900},{"file":"03-encargado-mapa.html","title":"Encargado: mapa primero","tradeoff":"Historia territorial fuerte para el jurado; menos espacio para leer cada reporte","width":1440,"height":900}]}
+{
+  "title": "Microbasurales · Gestión de Calidad",
+  "brief": "Triage municipal de reportes de microbasurales: vista vecino y vista encargado",
+  "feature": "odd/tasks/microbasurales.md",
+  "artboards": [
+    {
+      "file": "01-vecino-reporte.html",
+      "title": "Vecino: reportar y confirmación (escritorio)",
+      "tradeoff": "Simple y tranquilizador; muestra lo que entendió la IA sin jerga",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "04-vecino-chat.html",
+      "title": "Vecino: chat + panel en vivo",
+      "tradeoff": "Conversacional y vivo (el panel se completa mientras habla); más pasos que un formulario",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "02-encargado-bandeja.html",
+      "title": "Encargado: bandeja de triage",
+      "tradeoff": "Densa y rápida para decidir; el mapa queda secundario",
+      "width": 1440,
+      "height": 900
+    },
+    {
+      "file": "03-encargado-mapa.html",
+      "title": "Encargado: mapa primero",
+      "tradeoff": "Historia territorial fuerte para el jurado; menos espacio para leer cada reporte",
+      "width": 1440,
+      "height": 900
+    }
+  ]
+}
