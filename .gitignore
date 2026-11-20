@@ -1,0 +1,36 @@
+# --- Secretos (NUNCA al repo) ---
+.env
+.env.*
+!.env.example
+*.csv
+*.pem
+*.key
+
+# --- Terraform ---
+.terraform/
+*.tfstate
+*.tfstate.backup
+*.tfvars
+*.tfplan
+crash.log
+# .terraform.lock.hcl SÍ va al repo
+
+# --- Python ---
+__pycache__/
+*.py[cod]
+.venv/
+venv/
+
+# --- Resultado de evaluacion.evaluar (se genera en cada entorno) ---
+backend/evaluacion/ultimo_resultado.json
+
+# --- Node / Vite ---
+node_modules/
+dist/
+*.local
+
+# --- Editor y sistema ---
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db

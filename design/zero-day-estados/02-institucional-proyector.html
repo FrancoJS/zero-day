@@ -1,0 +1,309 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>02 · Institucional alto contraste — Zero Day, estados</title>
+<style>
+  :root{
+    --fondo:#FFFFFF; --superficie:#F1F5F9; --borde:#CBD5E1; --borde-control:#64748B;
+    --texto:#0F172A; --texto-2:#334155;
+    --primario:#1D4ED8; --primario-hover:#1E40AF; --primario-tinte:#DBEAFE;
+    --exito:#15803D; --exito-t:#DCFCE7; --exito-o:#14532D;
+    --adv:#B45309; --adv-t:#FEF3C7; --adv-o:#78350F;
+    --error:#B91C1C; --error-t:#FEE2E2; --error-o:#7F1D1D;
+    --info:#0369A1; --info-t:#E0F2FE; --info-o:#0C4A6E;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{width:1440px;min-height:1600px;background:#E2E8F0;color:var(--texto);font:18px/1.5 var(--sans)}
+  h1,h2,h3,p{margin:0}
+  .lienzo{padding:24px 32px;display:flex;flex-direction:column;gap:18px}
+  .rot{font:700 13px/1 var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--texto-2)}
+  .blanco{background:#fff;border:1px solid var(--borde);border-radius:8px}
+  .num{font-variant-numeric:tabular-nums}
+  .mono{font-family:var(--mono)}
+
+  /* Banda superior */
+  .banda{display:grid;grid-template-columns:400px 1fr;gap:24px}
+  .intro{padding:18px 20px;display:flex;flex-direction:column;gap:10px;border-top:6px solid var(--primario)}
+  .intro h1{font-size:36px;line-height:1.1;font-weight:800}
+  .intro .lead{font-size:17px;color:var(--texto-2)}
+  .nota{font-size:15px;color:var(--texto-2);background:var(--superficie);border-radius:6px;padding:12px 14px}
+  .nota p+p{margin-top:6px}
+  .nota strong{color:var(--texto)}
+  .sistema{padding:18px 22px;display:flex;flex-direction:column;gap:12px}
+  .paleta{display:grid;grid-template-columns:repeat(9,1fr);gap:10px}
+  .sw{display:flex;flex-direction:column;gap:6px}
+  .sw i{height:40px;border-radius:6px;border:1px solid var(--borde-control)}
+  .sw b{font-size:14px;line-height:1.2}
+  .sw span{font:13px/1.3 var(--mono);color:var(--texto-2)}
+  .sw em{font-style:normal;font-size:12px;font-weight:700;color:var(--exito-o);background:var(--exito-t);border-radius:4px;padding:1px 6px;align-self:flex-start}
+  .tipo{display:grid;grid-template-columns:repeat(5,auto);gap:16px;align-items:baseline;border-top:1px solid var(--borde);padding-top:10px}
+  .tipo div{display:flex;flex-direction:column;gap:2px}
+  .tipo code{font:12px var(--mono);color:var(--texto-2)}
+  .cfg{font:13px/1.5 var(--mono);color:var(--texto-2);border-top:1px solid var(--borde);padding-top:12px}
+
+  /* Galería */
+  .galeria{display:grid;grid-template-columns:1fr 1fr;gap:24px;align-items:start}
+  .col{display:flex;flex-direction:column;gap:14px}
+  .estado{display:flex;flex-direction:column;gap:8px}
+  .caja{padding:14px 18px}
+
+  /* Encabezado app */
+  .app-h{display:flex;justify-content:space-between;align-items:center;gap:12px;padding:14px 18px;border-bottom:3px solid var(--texto)}
+  .app-h h3{font-size:24px;font-weight:800}
+  .app-h p{font-size:14px;color:var(--texto-2)}
+  .ins-fila{display:flex;gap:8px;flex-wrap:wrap}
+  .ins{display:inline-flex;align-items:center;gap:7px;border:2px solid;border-radius:6px;padding:4px 10px;font:700 15px/1.3 var(--sans);white-space:nowrap}
+  .ins.ok{color:var(--exito-o);border-color:var(--exito);background:var(--exito-t)}
+  .ins.adv{color:var(--adv-o);border-color:var(--adv);background:var(--adv-t)}
+  .ins.err{color:var(--error-o);border-color:var(--error);background:var(--error-t)}
+  .ins.off{color:var(--texto-2);border-color:var(--borde-control);background:var(--superficie)}
+
+  /* Formulario */
+  .lbl{font-weight:700;font-size:17px}
+  textarea{width:100%;resize:none;border:2px solid var(--borde-control);border-radius:6px;padding:12px 14px;font:18px/1.5 var(--sans);color:var(--texto);background:#fff}
+  textarea:focus-visible,textarea.foco{outline:3px solid var(--primario);outline-offset:2px;border-color:var(--primario)}
+  textarea:disabled{background:var(--superficie);color:var(--texto-2);cursor:not-allowed}
+  .fila{display:flex;gap:10px;flex-wrap:wrap;align-items:center}
+  .btn{min-height:48px;padding:0 20px;border-radius:6px;font:700 17px var(--sans);cursor:pointer;display:inline-flex;align-items:center;gap:8px}
+  .btn-p{background:var(--primario);color:#fff;border:2px solid var(--primario)}
+  .btn-p:hover{background:var(--primario-hover)}
+  .btn-s{background:#fff;color:var(--primario);border:2px solid var(--primario)}
+  .btn-s:hover{background:var(--primario-tinte)}
+  .btn:focus-visible,.btn.foco{outline:3px solid var(--texto);outline-offset:3px}
+  .btn:disabled{background:var(--superficie);color:#475569;border-color:var(--borde-control);cursor:not-allowed}
+  .ayuda{font-size:15px;color:var(--texto-2)}
+  .dos{display:grid;grid-template-columns:1fr 1fr;gap:14px}
+
+  /* Vacío */
+  .vacio{display:grid;grid-template-columns:56px 1fr;gap:4px 16px;padding:16px 20px;border:2px dashed var(--borde-control);border-radius:8px;background:#fff}
+  .vacio svg{grid-row:span 3}
+  .vacio h3{font-size:22px}
+  .chip{display:block;width:100%;text-align:left;margin-top:8px;min-height:48px;padding:10px 14px;border:2px solid var(--primario);border-radius:6px;background:var(--primario-tinte);color:var(--texto);font:16px/1.4 var(--sans);cursor:pointer}
+  .chip b{color:var(--primario)}
+  .chip:focus-visible{outline:3px solid var(--texto);outline-offset:2px}
+
+  /* Carga */
+  .carga{display:flex;align-items:center;gap:16px}
+  .spin{width:30px;height:30px;border-radius:50%;border:4px solid var(--borde);border-top-color:var(--primario);flex:none}
+  .carga strong{font-size:22px}
+  .seg{display:inline-block;min-width:64px;text-align:right;font-weight:800;color:var(--primario)}
+  .barra{height:12px;border-radius:3px;background:var(--superficie);border:1px solid var(--borde-control);overflow:hidden;margin-top:12px}
+  .barra i{display:block;height:100%;background:var(--adv)}
+
+  /* Streaming */
+  .stream{font-size:18px;line-height:1.6}
+  .caret{display:inline-block;width:.5em;height:1.05em;background:var(--primario);vertical-align:-.15em;margin-left:2px}
+
+  /* Resultado */
+  .tarjetas{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .tj{background:#fff;border:1px solid var(--borde);border-left:5px solid var(--texto);border-radius:6px;padding:12px 14px}
+  .tj.ancha{grid-column:span 2}
+  .tj .t{font:700 13px var(--sans);letter-spacing:.08em;text-transform:uppercase;color:var(--texto-2)}
+  .tj .v{font-size:20px;font-weight:700;margin-top:2px;line-height:1.35}
+  .tj .v.normal{font-size:18px;font-weight:400}
+  .tj.alta{border-left-color:var(--error)}
+  .prio{display:inline-flex;align-items:center;gap:6px;font-weight:800;border-radius:4px;padding:2px 10px}
+  .prio.alta{color:var(--error-o);background:var(--error-t)}
+  .prio.media{color:var(--adv-o);background:var(--adv-t)}
+  .prio.baja{color:var(--exito-o);background:var(--exito-t)}
+  .meta{font-size:15px;color:var(--texto-2)}
+
+  /* Errores */
+  .err{display:grid;grid-template-columns:auto 1fr auto;gap:2px 14px;align-items:start;padding:10px 14px;border:2px solid var(--error);border-left-width:8px;background:var(--error-t);border-radius:6px;color:var(--error-o)}
+  .err svg{grid-row:span 2;margin-top:3px}
+  .err h3{font-size:19px;color:var(--error-o)}
+  .err p{font-size:16px;color:var(--error-o)}
+  .err .acc{grid-row:span 2;align-self:center}
+  .err .cod{font:600 13px var(--mono);opacity:.9}
+  .err.adv{border-color:var(--adv);background:var(--adv-t);color:var(--adv-o)}
+  .err.adv h3,.err.adv p{color:var(--adv-o)}
+
+  /* Historial */
+  table{width:100%;border-collapse:collapse;font-size:16px;background:#fff}
+  caption{text-align:left;padding-bottom:6px}
+  th{font:700 13px var(--sans);letter-spacing:.06em;text-transform:uppercase;text-align:left;color:var(--texto-2);padding:8px 12px;border-bottom:2px solid var(--texto)}
+  td{padding:9px 12px;border-bottom:1px solid var(--borde);vertical-align:top}
+  td.h{white-space:nowrap;color:var(--texto-2);font-variant-numeric:tabular-nums}
+  .aviso{display:flex;align-items:center;gap:10px;padding:12px 14px;background:var(--superficie);border:1px solid var(--borde-control);border-radius:6px;font-size:16px;color:var(--texto)}
+
+  @media (prefers-reduced-motion: no-preference){
+    .spin{animation:g 1s linear infinite}
+    .caret{animation:p 1s steps(1) infinite}
+  }
+  @keyframes g{to{transform:rotate(360deg)}}
+  @keyframes p{50%{opacity:0}}
+</style>
+</head>
+<body>
+<main class="lienzo">
+  <!-- ======== BANDA: SISTEMA ======== -->
+  <div class="banda">
+    <header class="blanco intro">
+      <span class="rot">Dirección 02</span>
+      <h1>Institucional alto contraste</h1>
+      <p class="lead">Blanco y tinta, azul institucional; cada estado = tinte + borde grueso + ícono + texto. Cuerpo a 18 px.</p>
+      <aside class="nota" aria-label="Por qué y tradeoff">
+        <p><strong>Por qué:</strong> un proyector lava los oscuros, pero no el negro sobre blanco. Todo texto ≥ 7:1 salvo los colores de estado (≥ 4,5:1).</p>
+        <p><strong>Tradeoff:</strong> sobrio y "de oficina": se lee desde la última fila, pero emociona menos y se ve más grande, así que cabe menos en pantalla.</p>
+        <p><strong>Proyector:</strong> la más segura con luz de día.</p>
+      </aside>
+    </header>
+
+    <section class="blanco sistema" aria-labelledby="pal2">
+      <h2 id="pal2" class="rot">Paleta · roles · contraste sobre blanco</h2>
+      <div class="paleta">
+        <div class="sw"><i style="background:#FFFFFF"></i><b>Fondo</b><span>#FFFFFF</span><span>white</span></div>
+        <div class="sw"><i style="background:#F1F5F9"></i><b>Superficie</b><span>#F1F5F9</span><span>slate-100</span></div>
+        <div class="sw"><i style="background:#0F172A"></i><b>Texto</b><span>#0F172A</span><em>17,9:1</em></div>
+        <div class="sw"><i style="background:#334155"></i><b>Texto secundario</b><span>#334155</span><em>10,4:1</em></div>
+        <div class="sw"><i style="background:#1D4ED8"></i><b>Primario</b><span>#1D4ED8</span><em>6,7:1</em></div>
+        <div class="sw"><i style="background:#15803D"></i><b>Éxito</b><span>#15803D</span><em>5:1</em></div>
+        <div class="sw"><i style="background:#B45309"></i><b>Advertencia</b><span>#B45309</span><em>5:1</em></div>
+        <div class="sw"><i style="background:#B91C1C"></i><b>Error</b><span>#B91C1C</span><em>6,5:1</em></div>
+        <div class="sw"><i style="background:#0369A1"></i><b>Info</b><span>#0369A1</span><em>5,9:1</em></div>
+      </div>
+      <p class="ayuda">Tintes de estado: <span class="mono">#DCFCE7 #FEF3C7 #FEE2E2 #E0F2FE</span> con texto -900 (≥ 8:1). Borde de control <span class="mono">#64748B</span> (4,8:1).</p>
+      <div class="tipo" aria-label="Escala tipográfica">
+        <div><span style="font-size:36px;font-weight:800;line-height:1">Zero Day</span><code>text-4xl · 800</code></div>
+        <div><span style="font-size:24px;font-weight:700">Resultado</span><code>text-2xl · 700</code></div>
+        <div><span style="font-size:20px;font-weight:700">Esperando a la IA…</span><code>text-xl · 700</code></div>
+        <div><span style="font-size:18px">Cuerpo y tarjetas</span><code>text-lg · base del sistema</code></div>
+        <div><span style="font-size:15px;color:var(--texto-2)">Metadatos (mínimo)</span><code>text-[15px]</code></div>
+      </div>
+      <p class="cfg">tailwind.config → sin colores propios: white, slate-100/300/500/700/900, blue-700/800/100, green-700/100/900, amber-700/100/900, red-700/100/900, sky-700/100/900 · fontFamily.sans = system-ui</p>
+    </section>
+  </div>
+
+  <!-- ======== GALERÍA ======== -->
+  <div class="galeria">
+    <div class="col">
+      <section class="estado" aria-labelledby="e-enc">
+        <h2 id="e-enc" class="rot">Encabezado · modo y base de datos</h2>
+        <div class="blanco">
+          <div class="app-h">
+            <div><h3>Zero Day</h3><p>Hackatón Huawei INACAP 2026</p></div>
+            <div class="ins-fila">
+              <span class="ins ok"><svg width="12" height="12" aria-hidden="true"><circle cx="6" cy="6" r="6" fill="currentColor"/></svg>Kostra LIVE · deepseek-v4.1-flash</span>
+              <span class="ins ok"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7.5 5.5 11 12 3" fill="none" stroke="currentColor" stroke-width="2.5"/></svg>BD conectada</span>
+            </div>
+          </div>
+          <div class="ins-fila" style="padding:12px 18px">
+            <span class="ins adv"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M7 1 13.5 13H.5z" fill="currentColor"/></svg>MOCK · respuestas simuladas</span>
+            <span class="ins off"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M2 7h10" stroke="currentColor" stroke-width="2.5"/></svg>BD desactivada</span>
+            <span class="ins err"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3 3 11" stroke="currentColor" stroke-width="2.5"/></svg>BD con error</span>
+            <span class="ins err"><svg width="14" height="14" viewBox="0 0 14 14" aria-hidden="true"><path d="M3 3l8 8M11 3 3 11" stroke="currentColor" stroke-width="2.5"/></svg>Backend sin conexión</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-form">
+        <h2 id="e-form" class="rot">Formulario · foco y deshabilitado</h2>
+        <form class="blanco caja estado" onsubmit="return false">
+          <label class="lbl" for="t21">¿Qué quieres analizar?</label>
+          <textarea id="t21" class="foco" rows="3">El sistema de pagos está caído desde las 9:00 y no podemos cobrar a nadie, es urgente.</textarea>
+          <div class="fila">
+            <button class="btn btn-p" type="submit">Analizar</button>
+            <button class="btn btn-s" type="button">Respuesta larga (streaming)</button>
+          </div>
+        </form>
+        <div class="blanco caja fila">
+          <button class="btn btn-p" type="button" disabled aria-describedby="motivo">Analizar</button>
+          <button class="btn btn-s" type="button" disabled aria-describedby="motivo">Respuesta larga (streaming)</button>
+          <p class="ayuda" id="motivo" style="flex:1;min-width:180px">Inactivos sin texto o mientras la IA trabaja.</p>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-vac">
+        <h2 id="e-vac" class="rot">Estado vacío</h2>
+        <div class="vacio">
+          <svg width="56" height="56" viewBox="0 0 56 56" aria-hidden="true"><rect x="6" y="10" width="44" height="36" rx="4" fill="#DBEAFE" stroke="#1D4ED8" stroke-width="2.5"/><path d="M14 22h28M14 30h20M14 38h12" stroke="#1D4ED8" stroke-width="2.5"/></svg>
+          <h3>Todavía no hay resultados</h3>
+          <p class="ayuda">Escribe un texto y presiona <b>Analizar</b>. También puedes partir con un ejemplo:</p>
+          <div>
+            <button class="chip" type="button"><b>Usar ejemplo →</b> "El sistema de pagos está caído desde las 9:00 y no podemos cobrar a nadie."</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-car">
+        <h2 id="e-car" class="rot">Cargando · y espera larga (&gt; 20 s)</h2>
+        <div class="blanco caja" role="status" aria-live="polite">
+          <div class="carga"><span class="spin" aria-hidden="true"></span><div><strong>Esperando a la IA… <span class="seg num">12 s</span></strong><p class="ayuda">Kostra está analizando tu texto.</p></div></div>
+        </div>
+        <div class="blanco caja" role="status" aria-live="polite" style="border:2px solid var(--adv)">
+          <div class="carga"><span class="spin" aria-hidden="true" style="border-top-color:var(--adv)"></span><div><strong>Sigue trabajando… <span class="seg num" style="color:var(--adv-o)">34 s</span></strong><p class="ayuda">Es normal: Kostra puede tardar hasta 90 s. No recargues la página.</p></div></div>
+          <div class="barra" role="img" aria-label="34 de 90 segundos como máximo"><i style="width:38%"></i></div>
+          <p class="meta num" style="margin-top:6px">34 de 90 s como máximo</p>
+        </div>
+      </section>
+    </div>
+
+    <div class="col">
+      <section class="estado" aria-labelledby="e-str">
+        <h2 id="e-str" class="rot">Streaming en curso</h2>
+        <div class="blanco caja" aria-live="polite" aria-busy="true" style="border-top:4px solid var(--info)">
+          <p class="meta" style="margin-bottom:6px;color:var(--info-o)"><b>● Escribiendo respuesta…</b> 6 s</p>
+          <p class="stream">El sistema de pagos lleva más de una hora sin funcionar. Primero confirma si la falla está en la pasarela o en la red: revisa el panel del proveedor y prueba un cobro pequeño. Mientras tanto, pide a caja que registre las ventas a mano y<span class="caret" aria-hidden="true"></span></p>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-res">
+        <h2 id="e-res" class="rot">Resultado</h2>
+        <div class="tarjetas">
+          <div class="tj"><p class="t">Categoría</p><p class="v">Incidente técnico</p></div>
+          <div class="tj alta"><p class="t">Prioridad</p><p class="v"><span class="prio alta"><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M8 1 15 14H1z" fill="currentColor"/></svg>Alta</span></p></div>
+          <div class="tj ancha"><p class="t">Resumen</p><p class="v normal">Los pagos no funcionan desde las 9:00 y se bloquean todos los cobros.</p></div>
+          <div class="tj ancha"><p class="t">Acción sugerida</p><p class="v normal">Escalar a infraestructura ahora y pedir a caja que registre ventas manualmente.</p></div>
+        </div>
+        <div class="fila" style="justify-content:space-between">
+          <p class="meta num">Kostra · 2,3 s · 1 intento</p>
+          <div class="fila" aria-label="Variantes de prioridad" style="font-size:16px">
+            <span class="prio alta">▲ Alta</span><span class="prio media">■ Media</span><span class="prio baja">▼ Baja</span>
+          </div>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-err">
+        <h2 id="e-err" class="rot">Errores · qué pasó, qué hacer, reintentar</h2>
+        <div class="err" role="alert">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M8 13h10" stroke="currentColor" stroke-width="2.5"/></svg>
+          <h3>No hay conexión con el backend</h3>
+          <button class="btn btn-p acc" type="button">Reintentar</button>
+          <p>¿Está levantado? Ejecuta el servidor y vuelve a intentar. Tu texto no se perdió.</p>
+        </div>
+        <div class="err" role="alert">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><circle cx="13" cy="13" r="11" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M9 9l8 8M17 9l-8 8" stroke="currentColor" stroke-width="2.5"/></svg>
+          <h3>La API key de Kostra es inválida <span class="cod">401</span></h3>
+          <button class="btn btn-s acc" type="button" style="background:#fff">Reintentar</button>
+          <p>Revisa <span class="mono">KOSTRA_API_KEY</span> en <span class="mono">.env</span> o usa modo MOCK.</p>
+        </div>
+        <div class="err adv" role="alert">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true"><path d="M13 2 25 23H1z" fill="none" stroke="currentColor" stroke-width="2.5"/><path d="M13 10v6M13 18.5V20" stroke="currentColor" stroke-width="2.5"/></svg>
+          <h3>La IA respondió con un formato inválido</h3>
+          <button class="btn btn-s acc" type="button" style="background:#fff">Reintentar</button>
+          <p>Falló dos veces seguidas. Reintenta o simplifica el texto.</p>
+        </div>
+      </section>
+
+      <section class="estado" aria-labelledby="e-his">
+        <h2 id="e-his" class="rot">Historial</h2>
+        <table class="blanco">
+          <thead><tr><th scope="col">Hora</th><th scope="col">Categoría</th><th scope="col">Prioridad</th><th scope="col">Resumen</th></tr></thead>
+          <tbody>
+            <tr><td class="h">10:42</td><td>Incidente técnico</td><td><span class="prio alta">▲ Alta</span></td><td>Pagos caídos desde las 9:00.</td></tr>
+            <tr><td class="h">10:37</td><td>Consulta</td><td><span class="prio media">■ Media</span></td><td>Cambio de dirección de despacho.</td></tr>
+            <tr><td class="h">10:31</td><td>Sugerencia</td><td><span class="prio baja">▼ Baja</span></td><td>Agregar modo oscuro.</td></tr>
+          </tbody>
+        </table>
+        <div class="aviso" role="note"><svg width="22" height="22" viewBox="0 0 22 22" aria-hidden="true"><circle cx="11" cy="11" r="9.5" fill="none" stroke="#0369A1" stroke-width="2"/><path d="M11 10v6M11 6.5V8" stroke="#0369A1" stroke-width="2.2"/></svg>Base de datos desactivada: el historial no se guarda.</div>
+      </section>
+    </div>
+  </div>
+</main>
+</body>
+</html>

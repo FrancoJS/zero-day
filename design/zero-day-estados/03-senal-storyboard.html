@@ -1,0 +1,328 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>03 · Señal: estado protagonista — Zero Day, estados</title>
+<style>
+  :root{
+    --papel:#F4F1EA; --blanco:#FFFFFF; --tinta:#141414; --gris:#4A4A4A; --linea:#141414;
+    --senal:#FF5A1F; --exito:#146C3A; --alerta:#F2B705; --alerta-txt:#8A5A00; --error:#C8102E; --info:#1D4ED8;
+    --sans: system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+    --mono: ui-monospace, "SFMono-Regular", Menlo, Consolas, "Liberation Mono", monospace;
+  }
+  *{box-sizing:border-box}
+  html,body{margin:0}
+  body{width:1440px;min-height:1600px;background:var(--papel);color:var(--tinta);font:17px/1.45 var(--sans)}
+  h1,h2,h3,p{margin:0}
+  main{padding:22px 32px;display:flex;flex-direction:column;gap:18px}
+  .num{font-variant-numeric:tabular-nums}
+  .mono{font-family:var(--mono)}
+  .rot{font:800 13px/1 var(--sans);letter-spacing:.12em;text-transform:uppercase}
+  .gris{color:var(--gris)}
+
+  /* ===== Cabecera de la hoja ===== */
+  .tope{display:grid;grid-template-columns:470px 1fr;gap:20px}
+  .marca{background:var(--tinta);color:var(--papel);padding:20px 22px;display:flex;flex-direction:column;gap:10px;position:relative}
+  .marca::after{content:"";position:absolute;left:0;bottom:0;height:8px;width:100%;background:var(--senal)}
+  .marca .rot{color:var(--senal)}
+  .marca h1{font-size:40px;line-height:.95;font-weight:900;letter-spacing:-.02em}
+  .marca p{font-size:15px;color:#E9E5DC}
+  .marca strong{color:#fff}
+  .marca .nota{display:flex;flex-direction:column;gap:5px;border-top:1px solid #4A4A4A;padding-top:10px;padding-bottom:6px}
+  .sistema{display:flex;flex-direction:column;gap:12px}
+  .paleta{display:grid;grid-template-columns:repeat(9,1fr);border:2px solid var(--linea)}
+  .sw{padding:10px 10px 8px;min-height:100px;display:flex;flex-direction:column;justify-content:flex-end;gap:2px;border-left:2px solid var(--linea);font-size:13px;line-height:1.25}
+  .sw:first-child{border-left:0}
+  .sw b{font-size:14px}
+  .sw span{font:12px var(--mono)}
+  .tipo{display:flex;gap:22px;align-items:baseline;flex-wrap:wrap;border-top:2px solid var(--linea);padding-top:10px}
+  .tipo div{display:flex;flex-direction:column}
+  .tipo code{font:12px var(--mono);color:var(--gris)}
+  .cfg{font:13px/1.5 var(--mono);color:var(--gris)}
+
+  /* ===== Componentes ===== */
+  .cuadro{background:var(--blanco);border:2px solid var(--linea);display:flex;flex-direction:column}
+  .banda{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:10px 14px;border-bottom:2px solid var(--linea)}
+  .banda .rot{font-size:14px}
+  .cuerpo{padding:12px 14px;display:flex;flex-direction:column;gap:9px}
+  .grande{font:900 84px/0.9 var(--sans);letter-spacing:-.04em;font-variant-numeric:tabular-nums}
+  .grande small{font-size:34px;letter-spacing:0;margin-left:4px}
+  .btn{min-height:46px;padding:0 16px;font:800 16px var(--sans);border:2px solid var(--tinta);cursor:pointer;display:inline-flex;align-items:center;gap:8px;border-radius:0}
+  .btn-p{background:var(--tinta);color:#fff}
+  .btn-p:hover{background:#333}
+  .btn-s{background:var(--blanco);color:var(--tinta)}
+  .btn-s:hover{background:var(--papel)}
+  .btn:focus-visible,.btn.foco{outline:3px solid var(--senal);outline-offset:3px}
+  .btn:disabled{background:#E4E0D6;color:#5C5C5C;border-color:#8C8C8C;cursor:not-allowed}
+  .btn-sm{min-height:40px;font-size:15px;padding:0 12px}
+  .fila{display:flex;gap:8px;flex-wrap:wrap;align-items:center}
+  textarea{width:100%;resize:none;border:2px solid var(--tinta);border-radius:0;padding:10px 12px;font:16px/1.45 var(--sans);color:var(--tinta);background:#fff}
+  textarea:focus-visible,textarea.foco{outline:4px solid var(--senal);outline-offset:0}
+  textarea:disabled{background:#EDEAE2;color:var(--gris);border-color:#8C8C8C}
+  .lbl{font-weight:800;font-size:15px}
+  .peq{font-size:15px}
+  .meta{font:13px var(--mono);color:var(--gris)}
+
+  .ins{display:inline-flex;align-items:center;gap:6px;padding:4px 9px;font:800 13px/1.3 var(--sans);border:2px solid var(--tinta);white-space:nowrap}
+  .ins.live{background:var(--tinta);color:#fff}
+  .ins.live i{width:9px;height:9px;border-radius:50%;background:#3DDC84}
+  .ins.mock{background:var(--alerta);color:var(--tinta)}
+  .ins.ok{background:#fff;color:var(--exito);border-color:var(--exito)}
+  .ins.off{background:#fff;color:var(--gris);border-style:dashed;border-color:var(--gris)}
+  .ins.err{background:var(--error);color:#fff;border-color:var(--error)}
+
+  /* ===== Storyboard ===== */
+  .story{display:grid;grid-template-columns:repeat(4,1fr);gap:16px}
+  .paso{display:flex;flex-direction:column;gap:8px}
+  .paso header{display:flex;align-items:baseline;gap:8px}
+  .paso header b{display:inline-grid;place-items:center;width:28px;height:28px;background:var(--tinta);color:var(--papel);font:900 15px var(--sans)}
+  .paso header span{font-weight:800}
+  .b-papel{background:var(--papel)}
+  .b-senal{background:var(--senal);color:var(--tinta)}
+  .b-alerta{background:var(--alerta);color:var(--tinta)}
+  .b-tinta{background:var(--tinta);color:#fff}
+  .b-error{background:var(--error);color:#fff}
+  .b-info{background:var(--info);color:#fff}
+  .ej{display:block;width:100%;text-align:left;padding:9px 11px;border:2px solid var(--tinta);background:var(--papel);font:15px/1.4 var(--sans);color:var(--tinta);cursor:pointer;min-height:44px}
+  .ej:hover{background:#fff}
+  .ej:focus-visible{outline:3px solid var(--senal);outline-offset:2px}
+  .ej b{display:block;font-size:12px;letter-spacing:.08em;text-transform:uppercase}
+  .pasos{list-style:none;margin:0;padding:0;display:flex;flex-direction:column;gap:5px;font-size:15px}
+  .pasos li{display:flex;gap:8px;align-items:center}
+  .pasos .h{color:var(--exito);font-weight:800}
+  .pasos .a{font-weight:800}
+  .pasos .p{color:var(--gris)}
+  .dot{width:12px;height:12px;border:2px solid currentColor;border-radius:50%;flex:none}
+  .dot.lleno{background:currentColor}
+  .regla{height:14px;border:2px solid var(--tinta);background:#fff;position:relative}
+  .regla i{position:absolute;inset:0 auto 0 0;background:var(--tinta)}
+  .regla::after{content:"";position:absolute;left:22%;top:-6px;bottom:-6px;border-left:2px dashed var(--tinta)}
+  .skel{height:34px;background:repeating-linear-gradient(-45deg,#EDEAE2 0 8px,#F7F5F0 8px 16px);border:1px solid #CFCABD}
+
+  .tj{border-top:2px solid var(--tinta);padding-top:6px}
+  .tj .t{font:800 12px var(--sans);letter-spacing:.1em;text-transform:uppercase;color:var(--gris)}
+  .tj .v{font-size:17px;font-weight:700;line-height:1.3}
+  .tj .v.n{font-weight:400;font-size:16px}
+  .dos{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .prio{display:inline-flex;align-items:center;gap:6px;font-weight:900;padding:2px 8px;border:2px solid currentColor;font-size:15px}
+  .prio.alta{color:var(--error)}
+  .prio.media{color:var(--alerta-txt)}
+  .prio.baja{color:var(--exito)}
+
+  /* ===== Fila inferior ===== */
+  .abajo{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;align-items:start}
+  .pila{display:flex;flex-direction:column;gap:10px}
+  .stream{font-size:17px;line-height:1.55}
+  .caret{display:inline-block;width:.55em;height:1.05em;background:var(--senal);vertical-align:-.15em;margin-left:2px}
+  .err-h{font-size:17px;font-weight:800;line-height:1.25}
+  .err .cuerpo{gap:6px}
+  .hist{list-style:none;margin:0;padding:0}
+  .hist li{padding:8px 12px;border-top:2px solid var(--tinta);display:grid;grid-template-columns:1fr auto;gap:0 8px;font-size:15px}
+  .hist li:first-child{border-top:0}
+  .hist .cat{font-weight:800}
+  .hist time{grid-column:1 / span 2;font:12px var(--mono);color:var(--gris)}
+  .hist .r{grid-column:1 / span 2;color:var(--gris)}
+
+  @media (prefers-reduced-motion: no-preference){
+    .caret{animation:p 1s steps(1) infinite}
+    .latido{animation:l 1.4s ease-in-out infinite}
+  }
+  @keyframes p{50%{opacity:0}}
+  @keyframes l{50%{opacity:.35}}
+</style>
+</head>
+<body>
+<main>
+  <!-- ===================== SISTEMA ===================== -->
+  <div class="tope">
+    <header class="marca">
+      <span class="rot">Dirección 03 · Señal</span>
+      <h1>El estado es<br>el protagonista</h1>
+      <p>Papel, tinta y naranja de señal. Cada momento tiene una <strong>banda de estado</strong> con un número gigante: el jurado entiende qué pasa sin leer.</p>
+      <div class="nota" aria-label="Por qué y tradeoff">
+        <p><strong>Por qué:</strong> en un pitch la espera de 30 s es el momento más frágil; convertirla en algo visible ("Pensando 12 s", "paso 2 de 3") sostiene la atención.</p>
+        <p><strong>Tradeoff:</strong> más personalidad y más trabajo (banda + pasos); requiere 7 colores propios en tailwind.config y disciplina: el naranja solo como relleno con texto negro, nunca como texto.</p>
+        <p><strong>Proyector:</strong> muy buena; bloques grandes y negro sobre claro resisten el lavado.</p>
+      </div>
+    </header>
+
+    <section class="sistema" aria-labelledby="pal3">
+      <h2 id="pal3" class="rot">Paleta · roles (contraste sobre papel)</h2>
+      <div class="paleta">
+        <div class="sw" style="background:#F4F1EA"><b>Fondo · papel</b><span>#F4F1EA</span></div>
+        <div class="sw" style="background:#FFFFFF"><b>Superficie</b><span>#FFFFFF</span></div>
+        <div class="sw" style="background:#141414;color:#fff"><b>Texto · tinta</b><span>#141414 · 16:1</span></div>
+        <div class="sw" style="background:#4A4A4A;color:#fff"><b>Texto secundario</b><span>#4A4A4A · 7,9:1</span></div>
+        <div class="sw" style="background:#FF5A1F"><b>Primario · señal</b><span>#FF5A1F · relleno, texto negro 5,9:1</span></div>
+        <div class="sw" style="background:#146C3A;color:#fff"><b>Éxito</b><span>#146C3A · 5,8:1</span></div>
+        <div class="sw" style="background:#F2B705"><b>Advertencia</b><span>#F2B705 · texto #8A5A00 5,3:1</span></div>
+        <div class="sw" style="background:#C8102E;color:#fff"><b>Error</b><span>#C8102E · 5,2:1</span></div>
+        <div class="sw" style="background:#1D4ED8;color:#fff"><b>Info</b><span>#1D4ED8 · 5,9:1</span></div>
+      </div>
+      <div class="tipo" aria-label="Escala tipográfica">
+        <div><span style="font:900 84px/0.9 var(--sans);letter-spacing:-.04em">12 s</span><code>contador · 84/900</code></div>
+        <div><span style="font:900 46px/1 var(--sans);letter-spacing:-.02em">Zero Day</span><code>título · 46/900</code></div>
+        <div><span style="font:800 22px var(--sans)">Resultado</span><code>sección · 22/800</code></div>
+        <div><span style="font-size:17px">Cuerpo y tarjetas</span><code>base · 17</code></div>
+        <div><span class="rot" style="font-size:13px">Etiqueta</span><code>13/800 · mín.</code></div>
+      </div>
+      <p class="cfg">tailwind.config → colors: { papel:'#F4F1EA', tinta:'#141414', gris:'#4A4A4A', senal:'#FF5A1F', exito:'#146C3A', alerta:{DEFAULT:'#F2B705', texto:'#8A5A00'}, error:'#C8102E' } · info = blue-700 · bordes 2px, sin radio (rounded-none)</p>
+    </section>
+  </div>
+
+  <!-- ===================== STORYBOARD ===================== -->
+  <section aria-labelledby="sb">
+    <h2 id="sb" class="rot" style="margin-bottom:10px">Storyboard de la demo · la misma zona de resultado en 4 momentos</h2>
+    <div class="story">
+      <!-- 1 vacío -->
+      <article class="paso" aria-labelledby="p1">
+        <header><b>1</b><span id="p1">Vacío</span></header>
+        <div class="cuadro">
+          <div class="banda b-papel"><span class="rot">Listo para analizar</span><span class="meta">0 análisis</span></div>
+          <div class="cuerpo">
+            <p style="font-size:22px;font-weight:900;line-height:1.15">Pega un texto y presiona Analizar.</p>
+            <p class="peq gris">La IA lo clasifica, le asigna prioridad y sugiere qué hacer. Prueba con un ejemplo:</p>
+            <button class="ej" type="button"><b>Incidente</b>El sistema de pagos está caído desde las 9:00 y no podemos cobrar a nadie.</button>
+            <button class="ej" type="button"><b>Consulta</b>¿Puedo cambiar la dirección de despacho de mi pedido?</button>
+          </div>
+        </div>
+      </article>
+
+      <!-- 2 pensando -->
+      <article class="paso" aria-labelledby="p2">
+        <header><b>2</b><span id="p2">Cargando · 0–20 s</span></header>
+        <div class="cuadro" role="status" aria-live="polite">
+          <div class="banda b-senal"><span class="rot"><span class="latido" aria-hidden="true">●</span> Pensando</span><span class="rot">Kostra</span></div>
+          <div class="cuerpo">
+            <p class="grande" aria-label="12 segundos">12<small>s</small></p>
+            <p style="font-weight:800">Esperando a la IA… 12 s</p>
+            <ol class="pasos" aria-label="Progreso">
+              <li class="h"><span class="dot lleno" aria-hidden="true"></span>Texto enviado ✓</li>
+              <li class="a"><span class="dot" aria-hidden="true"></span>La IA está leyendo (paso 2 de 3)</li>
+              <li class="p"><span class="dot" aria-hidden="true" style="border-style:dashed"></span>Validar y mostrar resultado</li>
+            </ol>
+            <div class="skel" aria-hidden="true"></div>
+            <div class="skel" aria-hidden="true" style="height:44px"></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 3 espera larga -->
+      <article class="paso" aria-labelledby="p3">
+        <header><b>3</b><span id="p3">Espera larga · &gt; 20 s</span></header>
+        <div class="cuadro" role="status" aria-live="polite">
+          <div class="banda b-alerta"><span class="rot">▲ Sigue trabajando</span><span class="rot">Kostra</span></div>
+          <div class="cuerpo">
+            <p class="grande" aria-label="34 segundos">34<small>s</small></p>
+            <p style="font-weight:800">Esta respuesta está tardando más de lo normal.</p>
+            <p class="peq gris">Kostra puede demorar hasta 90 s. No recargues: tu texto está a salvo y el resultado aparecerá aquí.</p>
+            <div class="regla" role="img" aria-label="34 de 90 segundos como máximo"><i style="width:38%"></i></div>
+            <div class="fila" style="justify-content:space-between"><span class="meta num">0 s</span><span class="meta num">20 s · normal</span><span class="meta num">90 s · máx.</span></div>
+          </div>
+        </div>
+      </article>
+
+      <!-- 4 resultado -->
+      <article class="paso" aria-labelledby="p4">
+        <header><b>4</b><span id="p4">Resultado</span></header>
+        <div class="cuadro">
+          <div class="banda b-tinta"><span class="rot" style="color:#3DDC84">✓ Listo</span><span class="meta num" style="color:#E9E5DC">2,3 s</span></div>
+          <div class="cuerpo">
+            <div class="dos">
+              <div class="tj"><p class="t">Categoría</p><p class="v">Incidente técnico</p></div>
+              <div class="tj"><p class="t">Prioridad</p><p class="v"><span class="prio alta">▲ Alta</span></p></div>
+            </div>
+            <div class="tj"><p class="t">Resumen</p><p class="v n">Los pagos no funcionan desde las 9:00 y se bloquean todos los cobros.</p></div>
+            <div class="tj"><p class="t">Acción sugerida</p><p class="v n">Escalar a infraestructura ahora y pedir a caja que registre ventas a mano.</p></div>
+            <p class="meta num">Kostra · 2,3 s · 1 intento</p>
+            <div class="fila" aria-label="Variantes de prioridad"><span class="prio alta">▲ Alta</span><span class="prio media">■ Media</span><span class="prio baja">▼ Baja</span></div>
+          </div>
+        </div>
+      </article>
+    </div>
+  </section>
+
+  <!-- ===================== FILA INFERIOR ===================== -->
+  <div class="abajo">
+    <section class="pila" aria-labelledby="c-enc">
+      <h2 id="c-enc" class="rot">Encabezado y formulario</h2>
+      <div class="cuadro">
+        <div class="banda b-papel" style="flex-wrap:wrap"><strong style="font-size:20px;font-weight:900">ZERO DAY</strong>
+          <div class="fila"><span class="ins live"><i aria-hidden="true"></i>Kostra LIVE · deepseek-v4.1-flash</span><span class="ins ok">✓ BD conectada</span></div>
+        </div>
+        <div class="cuerpo" style="padding:10px 14px;gap:6px">
+          <div class="fila"><span class="ins mock">▲ MOCK · respuestas simuladas</span></div>
+          <div class="fila"><span class="ins off">— BD desactivada</span><span class="ins err">✕ BD con error</span></div>
+        </div>
+      </div>
+      <form class="cuadro cuerpo" onsubmit="return false" style="padding:12px">
+        <label class="lbl" for="t31">Texto de entrada · foco</label>
+        <textarea id="t31" class="foco" rows="3">El sistema de pagos está caído desde las 9:00 y no podemos cobrar a nadie, es urgente.</textarea>
+        <div class="fila"><button class="btn btn-p" type="submit">Analizar →</button><button class="btn btn-s" type="button">Respuesta larga (streaming)</button></div>
+        <p class="lbl" style="margin-top:4px;border-top:2px dashed #8C8C8C;padding-top:8px">Deshabilitado · IA trabajando</p>
+        <div class="fila"><button class="btn btn-p btn-sm" type="button" disabled aria-describedby="m3">Analizando…</button><button class="btn btn-s btn-sm" type="button" disabled aria-describedby="m3">Streaming</button><span class="meta" id="m3">Se reactivan al terminar.</span></div>
+      </form>
+    </section>
+
+    <section class="pila" aria-labelledby="c-str">
+      <h2 id="c-str" class="rot">Streaming en curso</h2>
+      <div class="cuadro" aria-live="polite" aria-busy="true">
+        <div class="banda b-info"><span class="rot">● Escribiendo</span><span class="meta num" style="color:#fff">6 s · 412 caract.</span></div>
+        <div class="cuerpo">
+          <p class="stream">El sistema de pagos lleva más de una hora sin funcionar. Primero confirma si la falla está en la pasarela o en la red: revisa el panel del proveedor y prueba un cobro pequeño.</p>
+          <p class="stream">Mientras tanto, pide a caja que registre las ventas a mano y avisa a los clientes en la entrada para que<span class="caret" aria-hidden="true"></span></p>
+        </div>
+      </div>
+      <p class="peq gris">El texto crece hacia abajo; la banda queda fija arriba con el tiempo transcurrido.</p>
+    </section>
+
+    <section class="pila" aria-labelledby="c-err">
+      <h2 id="c-err" class="rot">Errores · banda roja + pista + reintento</h2>
+      <div class="cuadro err" role="alert">
+        <div class="banda b-error"><span class="rot">✕ Tiempo agotado</span><span class="meta" style="color:#fff">504</span></div>
+        <div class="cuerpo">
+          <p class="err-h">Kostra no respondió en 90 s.</p>
+          <p class="peq gris">Prueba con un texto más corto o reintenta. No se guardó nada.</p>
+          <div class="fila"><button class="btn btn-p btn-sm" type="button">Reintentar</button></div>
+        </div>
+      </div>
+      <div class="cuadro err" role="alert">
+        <div class="banda b-error"><span class="rot">✕ Sin saldo</span><span class="meta" style="color:#fff">402</span></div>
+        <div class="cuerpo">
+          <p class="err-h">Se agotó el saldo de Kostra.</p>
+          <p class="peq gris">Cambia a otra key o usa <span class="mono">AI_MODE=mock</span>.</p>
+          <div class="fila"><button class="btn btn-s btn-sm" type="button">Reintentar</button></div>
+        </div>
+      </div>
+      <div class="cuadro err" role="alert">
+        <div class="banda b-alerta"><span class="rot">▲ Límite alcanzado</span><span class="meta" style="color:var(--tinta)">429</span></div>
+        <div class="cuerpo">
+          <p class="err-h">Kostra limitó las peticiones.</p>
+          <p class="peq gris">Espera unos segundos y reintenta.</p>
+          <div class="fila"><button class="btn btn-s btn-sm" type="button">Reintentar</button></div>
+        </div>
+      </div>
+    </section>
+
+    <section class="pila" aria-labelledby="c-his">
+      <h2 id="c-his" class="rot">Historial</h2>
+      <div class="cuadro">
+        <div class="banda b-papel"><span class="rot">Últimos análisis</span><span class="meta">3 de 10</span></div>
+        <ul class="hist">
+          <li><time datetime="2026-11-20T10:42">Hoy · 10:42</time><span class="cat">Incidente técnico</span><span class="prio alta" style="font-size:13px">▲ Alta</span><span class="r">Pagos caídos desde las 9:00.</span></li>
+          <li><time datetime="2026-11-20T10:37">Hoy · 10:37</time><span class="cat">Consulta</span><span class="prio media" style="font-size:13px">■ Media</span><span class="r">Cambio de dirección de despacho.</span></li>
+          <li><time datetime="2026-11-20T10:31">Hoy · 10:31</time><span class="cat">Sugerencia</span><span class="prio baja" style="font-size:13px">▼ Baja</span><span class="r">Agregar modo oscuro a la app.</span></li>
+        </ul>
+      </div>
+      <div class="cuadro" role="note" style="border-style:dashed">
+        <div class="cuerpo" style="flex-direction:row;align-items:center;gap:10px">
+          <svg width="26" height="26" viewBox="0 0 26 26" aria-hidden="true" style="flex:none"><ellipse cx="13" cy="6" rx="9" ry="3.5" fill="none" stroke="#141414" stroke-width="2"/><path d="M4 6v14c0 1.9 4 3.5 9 3.5s9-1.6 9-3.5V6" fill="none" stroke="#141414" stroke-width="2"/><path d="M2 24 24 2" stroke="#C8102E" stroke-width="2.5"/></svg>
+          <p class="peq">Base de datos desactivada: el historial no se guarda.</p>
+        </div>
+      </div>
+    </section>
+  </div>
+</main>
+</body>
+</html>

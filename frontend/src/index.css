@@ -1,0 +1,11 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  /* Foco visible y grueso con el acento: se ve desde el fondo del auditorio. */
+  :focus-visible {
+    outline: 3px solid theme("colors.acento.DEFAULT");
+    outline-offset: 3px;
+  }
+}

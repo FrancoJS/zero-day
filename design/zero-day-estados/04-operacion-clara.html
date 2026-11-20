@@ -1,0 +1,303 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>04 · Operación clara — Centinela (demo incidentes)</title>
+<style>
+  :root{
+    --fondo:#FAF9F7; --sup:#FFFFFF; --sutil:#F3F2EF; --borde:#E4E2DD;
+    --t1:#161618; --t2:#4A4A4F; --t3:#6B6B70;
+    --acento:#2952E3; --acento-suave:#E8EDFD; --acento-osc:#1E3FB8;
+    --ok:#15803D; --ok-f:#DCFCE7; --adv:#B45309; --adv-f:#FEF3C7;
+    --par:#C2410C; --par-f:#FFEDD5; --cri:#B91C1C; --cri-f:#FEE2E2;
+    --ruido:#6B6B70; --ruido-f:#F3F2EF;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#E9E7E2;font-family:var(--sans);color:var(--t1);width:1600px}
+  .pantalla{width:1600px;height:1000px;background:var(--fondo);display:grid;grid-template-rows:72px 64px 1fr 214px;overflow:hidden}
+  .num{font-variant-numeric:tabular-nums}
+  /* barra superior */
+  .barra{display:flex;align-items:center;gap:20px;padding:0 32px;background:var(--sup);border-bottom:1px solid var(--borde)}
+  .marca{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px;letter-spacing:-.01em}
+  .marca svg{width:34px;height:34px}
+  .producto{font-size:18px;color:var(--t2);border-left:1px solid var(--borde);padding-left:20px}
+  .producto b{color:var(--t1)}
+  .barra .esp{flex:1}
+  .insignia{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 14px;font-size:16px;font-weight:600;border:1.5px solid}
+  .ins-live{color:var(--ok);background:var(--ok-f);border-color:#86EFAC}
+  .ins-bd{color:var(--t2);background:var(--sutil);border-color:var(--borde)}
+  .punto{width:10px;height:10px;border-radius:50%;background:currentColor}
+  /* franja de estado */
+  .franja{display:flex;align-items:center;gap:24px;padding:0 32px;background:var(--acento-suave);border-bottom:2px solid var(--acento)}
+  .franja .msg{font-size:21px;font-weight:700;color:var(--acento-osc)}
+  .franja .msg span{font-weight:500;color:var(--t1)}
+  .pasos{list-style:none;margin-left:auto;display:flex;align-items:center;gap:10px;font-size:17px;color:var(--t2)}
+  .paso{display:flex;align-items:center;gap:8px}
+  .paso i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;border:2px solid var(--t3);color:var(--t3);background:var(--sup)}
+  .paso.hecho i{background:var(--ok);border-color:var(--ok);color:#fff}
+  .paso.actual{color:var(--t1);font-weight:700}
+  .paso.actual i{background:var(--acento);border-color:var(--acento);color:#fff}
+  .flecha{color:var(--t3)}
+  /* cuerpo */
+  .cuerpo{display:grid;grid-template-columns:500px 1fr 440px;gap:20px;padding:20px 32px;min-height:0}
+  .panel{background:var(--sup);border:1px solid var(--borde);border-radius:14px;display:flex;flex-direction:column;min-height:0}
+  .panel h2{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);padding:16px 20px 10px;display:flex;justify-content:space-between}
+  .panel h2 small{text-transform:none;letter-spacing:0;font-size:15px;color:var(--t3);font-weight:500}
+  /* señales */
+  .senales{list-style:none;padding:0 12px 12px;display:flex;flex-direction:column;gap:5px;overflow:hidden}
+  .senal{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:8px 10px;border-radius:10px;border:1.5px solid transparent}
+  .senal .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--sutil);color:var(--t2)}
+  .senal .ico svg{width:18px;height:18px}
+  .senal .txt{font-size:16px;line-height:1.3}
+  .senal .txt b{font-weight:600}
+  .senal .meta{font-size:13px;color:var(--t3);margin-top:2px}
+  .senal .hora{font-size:14px;color:var(--t3)}
+  .senal.evid{border-color:#C7D3FA;background:#F7F9FF}
+  .senal.activa{border-color:var(--acento);background:var(--acento-suave);box-shadow:0 0 0 3px #C7D3FA}
+  .id{font-size:12px;font-weight:700;color:var(--acento-osc);background:var(--acento-suave);border-radius:6px;padding:1px 6px;margin-right:6px}
+  .senal.ruido{opacity:1;background:var(--ruido-f);padding:6px 10px}
+  .senal.ruido > div{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+  .senal.ruido .tag-ruido{margin-top:0}
+  .senal.ruido .txt{color:var(--t3);text-decoration:line-through;text-decoration-color:#B9B7B1}
+  .tag-ruido{display:inline-flex;align-items:center;gap:4px;font-size:12px;font-weight:700;color:var(--t2);background:#E4E2DD;border-radius:6px;padding:1px 7px;margin-top:4px;text-decoration:none}
+  .motivo{font-size:13px;color:var(--t2);text-decoration:none;display:inline}
+  /* causa raíz */
+  .causa{padding:4px 28px 20px;display:flex;flex-direction:column;gap:18px}
+  .sev{display:flex;gap:10px;align-items:center}
+  .badge{display:inline-flex;align-items:center;gap:7px;font-size:16px;font-weight:700;border-radius:8px;padding:5px 12px}
+  .badge svg{width:18px;height:18px}
+  .b-cri{color:var(--cri);background:var(--cri-f)}
+  .b-par{color:var(--par);background:var(--par-f)}
+  .b-adv{color:var(--adv);background:var(--adv-f)}
+  .b-ok{color:var(--ok);background:var(--ok-f)}
+  .titular{font-size:30px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+  .confianza{font-size:18px;color:var(--t2);line-height:1.45}
+  .confianza b{color:var(--t1)}
+  .lbl{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);font-weight:700;margin-bottom:8px}
+  .chips{display:flex;flex-wrap:wrap;gap:8px}
+  .chip{font:inherit;font-size:16px;font-weight:600;color:var(--acento-osc);background:var(--sup);border:1.5px solid #B9C7F6;border-radius:999px;padding:6px 14px;cursor:pointer;display:inline-flex;gap:8px;align-items:center}
+  .chip b{font-size:13px;background:var(--acento-suave);border-radius:6px;padding:1px 6px}
+  .chip.activo{background:var(--acento);color:#fff;border-color:var(--acento)}
+  .chip.activo b{background:#fff;color:var(--acento-osc)}
+  .verif{font-size:15px;color:var(--ok);display:flex;gap:6px;align-items:center;margin-top:8px}
+  .descartadas{border-top:1px solid var(--borde);padding-top:14px;font-size:17px;color:var(--t2);display:flex;justify-content:space-between}
+  .descartadas b{color:var(--t1)}
+  /* acción */
+  .accion{padding:4px 22px 20px;display:flex;flex-direction:column;gap:14px;height:100%}
+  .accion .que{font-size:22px;font-weight:700;line-height:1.3}
+  .ficha{display:grid;grid-template-columns:120px 1fr;gap:8px 12px;font-size:16px;background:var(--sutil);border-radius:10px;padding:12px 14px}
+  .ficha dt{color:var(--t2);font-weight:600}
+  .ficha dd{color:var(--t1)}
+  .botones{display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:auto}
+  .btn{font:inherit;font-size:19px;font-weight:700;border-radius:10px;padding:13px 16px;cursor:pointer;border:2px solid var(--borde);background:var(--sup);color:var(--t1);display:flex;align-items:center;justify-content:center;gap:8px}
+  .btn-pri{grid-column:1 / -1;background:var(--acento);border-color:var(--acento);color:#fff;font-size:21px;padding:15px}
+  .btn-pri:hover{background:var(--acento-osc)}
+  .btn:focus-visible,.btn.foco{outline:3px solid var(--acento);outline-offset:3px}
+  .btn-rech{color:var(--cri);border-color:#FCA5A5}
+  .nota{font-size:15px;color:var(--t2);display:flex;gap:8px;align-items:flex-start;line-height:1.35}
+  .nota svg{flex:none;width:18px;height:18px;margin-top:2px;color:var(--t2)}
+  /* calidad */
+  .calidad{margin:0 32px 20px;background:var(--sup);border:1px solid var(--borde);border-radius:14px;display:grid;grid-template-columns:330px 230px 250px 1fr;align-items:stretch}
+  .kpi{padding:18px 26px;border-right:1px solid var(--borde);display:flex;flex-direction:column;justify-content:center}
+  .kpi .grande{font-size:76px;font-weight:800;line-height:1;letter-spacing:-.03em}
+  .kpi .grande small{font-size:40px;color:var(--t3);font-weight:700}
+  .kpi .medio{font-size:46px;font-weight:800;line-height:1.05;letter-spacing:-.02em}
+  .kpi .medio small{font-size:24px;font-weight:700;color:var(--t2)}
+  .kpi .desc{font-size:17px;color:var(--t2);margin-top:8px;line-height:1.3}
+  .kpi .tit{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);font-weight:700;margin-bottom:8px}
+  .kpi .tipo{font-size:13px;font-weight:700;color:var(--ok);margin-top:6px}
+  .cats{padding:16px 24px;display:grid;grid-template-columns:1fr 1fr;gap:10px 28px;align-content:center}
+  .cat{display:grid;grid-template-columns:24px 1fr 56px;gap:10px;align-items:center;font-size:17px}
+  .cat svg{width:22px;height:22px}
+  .barra-c{grid-column:2 / 3;height:8px;border-radius:4px;background:var(--sutil);overflow:hidden;margin-top:4px}
+  .barra-c i{display:block;height:100%;background:var(--ok)}
+  .cat .n{font-weight:800;text-align:right;font-size:19px}
+  .cat.falla{color:var(--cri)}
+  .cat.falla .barra-c{background:var(--cri-f)}
+  .cat.falla .barra-c i{background:var(--cri);width:0}
+  .razon{grid-column:1 / -1;font-size:14px;color:var(--cri);background:var(--cri-f);border-radius:8px;padding:6px 10px;display:flex;gap:6px;align-items:center}
+  /* leyenda (fuera de la pantalla) */
+  .leyenda{width:1600px;height:240px;padding:24px 32px;display:grid;grid-template-columns:1fr 520px;gap:32px;background:#E9E7E2}
+  .sw{display:flex;flex-wrap:wrap;gap:10px}
+  .s{width:150px;font-size:12px;color:#161618}
+  .s i{display:block;height:34px;border-radius:8px;border:1px solid #CFCCC5;margin-bottom:4px}
+  .por{font-size:14px;line-height:1.45;color:#161618}
+  .por h3{font-size:15px;margin-bottom:6px}
+  @media (prefers-reduced-motion: reduce){ *{transition:none!important;animation:none!important} }
+  .pulso{animation:pulso 1.6s ease-in-out infinite}
+  @keyframes pulso{50%{opacity:.45}}
+</style>
+</head>
+<body>
+<main class="pantalla" aria-label="Pantalla de demo: Centinela, respuesta a incidentes">
+  <header class="barra">
+    <div class="marca">
+      <svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2952E3"/><path d="M10 11h14L10 23h14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+      Zero Day
+    </div>
+    <div class="producto"><b>Centinela</b> · respuesta a incidentes · Pagos Austral S.A.</div>
+    <div class="esp"></div>
+    <span class="insignia ins-live"><span class="punto pulso" aria-hidden="true"></span>Kostra LIVE · deepseek-v4.1-flash</span>
+    <span class="insignia ins-bd"><span class="punto" aria-hidden="true"></span>BD conectada</span>
+  </header>
+
+  <section class="franja" aria-live="polite">
+    <p class="msg">Diagnóstico listo <span>· 8 señales analizadas en <b class="num">4,2 s</b> · 3 descartadas como ruido · esperando tu aprobación</span></p>
+    <ol class="pasos" aria-label="Progreso">
+      <li class="paso hecho"><i aria-hidden="true">✓</i>Señales</li><li class="flecha" aria-hidden="true">→</li>
+      <li class="paso hecho"><i aria-hidden="true">✓</i>Diagnóstico</li><li class="flecha" aria-hidden="true">→</li>
+      <li class="paso actual" aria-current="step"><i aria-hidden="true">3</i>Aprobación</li>
+    </ol>
+  </section>
+
+  <div class="cuerpo">
+    <!-- SEÑALES -->
+    <section class="panel" aria-labelledby="h-senales">
+      <h2 id="h-senales">Señales <small>5 relevantes · 3 ruido</small></h2>
+      <ul class="senales">
+        <li class="senal evid activa">
+          <span class="ico" title="Log"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span>
+          <div><p class="txt"><span class="id">S2</span><b>Log pagos-api:</b> “pool de conexiones agotado (50/50), timeout 30 s”</p><p class="meta">Log · pagos-api · 312 repeticiones</p></div>
+          <span class="hora num">09:02</span>
+        </li>
+        <li class="senal evid">
+          <span class="ico" title="Alerta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg></span>
+          <div><p class="txt"><span class="id">S1</span><b>Alerta:</b> latencia p95 de /checkout sobre 8 s</p><p class="meta">Monitoreo · Cloud Eye</p></div>
+          <span class="hora num">09:01</span>
+        </li>
+        <li class="senal evid">
+          <span class="ico" title="Despliegue"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span>
+          <div><p class="txt"><span class="id">S5</span><b>Despliegue v2.14.0</b> de pagos-api: pool máx. cambió de 200 a 50</p><p class="meta">Pipeline · 8 min antes del primer error</p></div>
+          <span class="hora num">08:54</span>
+        </li>
+        <li class="senal evid">
+          <span class="ico" title="Ticket"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/><path d="M9 6v12"/></svg></span>
+          <div><p class="txt"><span class="id">S3</span><b>Ticket #4821:</b> “no puedo pagar, se queda cargando”</p><p class="meta">Soporte · 17 tickets similares</p></div>
+          <span class="hora num">09:05</span>
+        </li>
+        <li class="senal">
+          <span class="ico" title="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+          <div><p class="txt"><span class="id">S4</span><b>Chat #ops:</b> “¿alguien tocó pagos hoy? se cae el checkout”</p><p class="meta">Chat · equipo de operaciones</p></div>
+          <span class="hora num">09:06</span>
+        </li>
+        <li class="senal ruido">
+          <span class="ico" title="Alerta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span>
+          <div><p class="txt">Disco al 81 % en backup-02</p><span class="tag-ruido">Ruido</span> <span class="motivo">alerta recurrente, sin relación con pagos</span></div>
+          <span class="hora num">09:03</span>
+        </li>
+        <li class="senal ruido">
+          <span class="ico" title="Chat"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span>
+          <div><p class="txt">“¿Quién pide almuerzo hoy?”</p><span class="tag-ruido">Ruido</span> <span class="motivo">conversación no técnica</span></div>
+          <span class="hora num">09:04</span>
+        </li>
+        <li class="senal ruido">
+          <span class="ico" title="Alerta"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span>
+          <div><p class="txt">CPU 72 % en reportes-batch</p><span class="tag-ruido">Falso positivo</span> <span class="motivo">job nocturno programado</span></div>
+          <span class="hora num">08:58</span>
+        </li>
+      </ul>
+    </section>
+
+    <!-- CAUSA RAÍZ -->
+    <section class="panel" aria-labelledby="h-causa">
+      <h2 id="h-causa">Causa raíz probable</h2>
+      <div class="causa">
+        <div class="sev">
+          <span class="badge b-cri"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg>Crítico · checkout caído</span>
+          <span class="badge b-par">Afecta pagos con tarjeta</span>
+        </div>
+        <p class="titular">El despliegue v2.14.0 redujo el pool de conexiones de pagos-api de 200 a 50, y con el tráfico de la mañana las conexiones se agotan.</p>
+        <p class="confianza">Confianza <b>alta</b>: el primer error aparece 8 minutos después del despliegue y los 4 síntomas coinciden. <b>Falta confirmar</b> que no hubo un aumento anómalo de tráfico.</p>
+        <div>
+          <p class="lbl">Evidencia citada · verificada en las señales</p>
+          <div class="chips">
+            <button class="chip activo" aria-pressed="true"><b>S2</b>pool agotado (50/50)</button>
+            <button class="chip" aria-pressed="false"><b>S5</b>pool 200 → 50 en v2.14.0</button>
+            <button class="chip" aria-pressed="false"><b>S1</b>p95 sobre 8 s</button>
+            <button class="chip" aria-pressed="false"><b>S3</b>17 tickets de pago</button>
+          </div>
+          <p class="verif"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg>4 de 4 evidencias existen en las señales · 0 descartadas</p>
+        </div>
+        <p class="descartadas"><span><b>Hipótesis descartadas (2):</b> caída de la base de datos · ataque de tráfico</span><span aria-hidden="true">▸</span></p>
+      </div>
+    </section>
+
+    <!-- ACCIÓN -->
+    <section class="panel" aria-labelledby="h-accion">
+      <h2 id="h-accion">Acción propuesta</h2>
+      <div class="accion">
+        <p class="que">Revertir pagos-api a la versión v2.13.2</p>
+        <span class="badge b-adv" style="align-self:flex-start"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><path d="M12 3l9 16H3z"/><path d="M12 10v4M12 17h.01"/></svg>Riesgo medio · reinicio de 2 min</span>
+        <dl class="ficha">
+          <dt>Afecta</dt><dd>pagos-api (3 instancias)</dd>
+          <dt>Responsable</dt><dd>Turno de guardia SRE</dd>
+          <dt>Reversa</dt><dd>volver a v2.14.0 en 1 paso</dd>
+          <dt>Éxito si</dt><dd>p95 &lt; 1 s en 10 min</dd>
+        </dl>
+        <div class="botones">
+          <button class="btn btn-pri foco"><svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg>Aprobar y ejecutar</button>
+          <button class="btn">Editar</button>
+          <button class="btn btn-rech">Rechazar</button>
+        </div>
+        <p class="nota"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>Nada se ejecuta sin tu aprobación · ejecución simulada en la demo</p>
+      </div>
+    </section>
+  </div>
+
+  <!-- CALIDAD (estilo auditorio) -->
+  <section class="calidad" aria-labelledby="h-cal">
+    <div class="kpi">
+      <p class="tit" id="h-cal">Calidad del agente</p>
+      <p class="grande num">7<small>/8</small></p>
+      <p class="desc">casos correctos con la IA real</p>
+      <p class="tipo">● Observado · evaluación 13:50</p>
+    </div>
+    <div class="kpi">
+      <p class="tit">Tiempo</p>
+      <p class="medio num">2,9 <small>s</small></p>
+      <p class="desc">promedio por análisis</p>
+    </div>
+    <div class="kpi">
+      <p class="tit">Costo</p>
+      <p class="medio num">≈ $0,40</p>
+      <p class="desc">CLP por análisis (estimado con tokens reales)</p>
+    </div>
+    <div class="cats" aria-label="Resultado por categoría">
+      <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg><span>Normales<span class="barra-c"><i style="width:100%"></i></span></span><span class="n num">3/3</span></div>
+      <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg><span>Manipulación<span class="barra-c"><i style="width:100%"></i></span></span><span class="n num">1/1</span></div>
+      <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg><span>Ambiguos<span class="barra-c"><i style="width:100%"></i></span></span><span class="n num">1/1</span></div>
+      <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg><span>Datos sensibles<span class="barra-c"><i style="width:100%"></i></span></span><span class="n num">1/1</span></div>
+      <div class="cat"><svg viewBox="0 0 24 24" fill="none" stroke="#15803D" stroke-width="3"><path d="M5 12l5 5 9-10"/></svg><span>Informal<span class="barra-c"><i style="width:100%"></i></span></span><span class="n num">1/1</span></div>
+      <div class="cat falla"><svg viewBox="0 0 24 24" fill="none" stroke="#B91C1C" stroke-width="3"><path d="M6 6l12 12M18 6L6 18"/></svg><span>Fuera del tema<span class="barra-c"><i></i></span></span><span class="n num">0/1</span></div>
+      <p class="razon"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.6"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg>Limitación conocida: trató “¿capital de Francia?” como consulta. Falta acotar el tema en el prompt.</p>
+    </div>
+  </section>
+</main>
+
+<aside class="leyenda" aria-label="Paleta y decisiones">
+  <div>
+    <div class="sw">
+      <div class="s"><i style="background:#FAF9F7"></i>fondo #FAF9F7</div>
+      <div class="s"><i style="background:#FFFFFF"></i>superficie #FFFFFF</div>
+      <div class="s"><i style="background:#F3F2EF"></i>sutil #F3F2EF</div>
+      <div class="s"><i style="background:#E4E2DD"></i>borde #E4E2DD</div>
+      <div class="s"><i style="background:#161618"></i>texto #161618 · 17,2:1</div>
+      <div class="s"><i style="background:#4A4A4F"></i>secundario #4A4A4F · 8,4:1</div>
+      <div class="s"><i style="background:#6B6B70"></i>detalle #6B6B70 · 5,0:1</div>
+      <div class="s"><i style="background:#2952E3"></i>acento #2952E3 · blanco 6,2:1</div>
+      <div class="s"><i style="background:#E8EDFD"></i>acento suave #E8EDFD</div>
+      <div class="s"><i style="background:#15803D"></i>ok #15803D / #DCFCE7</div>
+      <div class="s"><i style="background:#B45309"></i>advertencia #B45309 / #FEF3C7</div>
+      <div class="s"><i style="background:#C2410C"></i>parcial #C2410C / #FFEDD5</div>
+      <div class="s"><i style="background:#B91C1C"></i>crítico #B91C1C / #FEE2E2</div>
+    </div>
+  </div>
+  <div class="por">
+    <h3>Por qué / tradeoff</h3>
+    <p>Fondo cálido en vez de blanco puro (no encandila en proyector); un solo acento cobalto para marca y acción principal, para que rojo/naranja signifiquen solo severidad. Estados siempre con ícono + texto. Números del panel de calidad en 46–76 px, legibles a 10 m. Costo: pantalla densa (3 columnas); en la demo se recorre de izquierda a derecha: señales → causa → acción. Referencias: incident.io (superficies cálidas, severidad con ícono), Vercel Geist (3 grises de texto), patrón “evidencia junto a la propuesta”.</p>
+  </div>
+</aside>
+</body>
+</html>

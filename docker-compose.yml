@@ -1,0 +1,54 @@
+services:
+  backend:
+    build: ./backend
+    env_file:
+      - path: .env
+        required: false # sin .env arranca en AI_MODE=mock
+    environment:
+      # Por defecto usa el Postgres de abajo. Para desactivar la BD: DATABASE_URL= (vacía) en .env.
+      # Si la BD falla, el análisis responde igual (guardado: false).
+      DATABASE_URL: ${DATABASE_URL-postgresql://zeroday:zeroday@base_datos:5432/zeroday}
+    depends_on:
+      base_datos:
+        condition: service_started # sin esperar "healthy": el backend reintenta la conexión solo
+    ports:
+      - "127.0.0.1:8000:8000" # solo local (Swagger en /docs); el navegador entra por el frontend
+    volumes:
+      - ./backend:/app
+    command: uvicorn main:app --host 0.0.0.0 --port 8000 --reload
+    restart: unless-stopped
+
+  frontend:
+    build: ./frontend
+    environment:
+      DESTINO_API: http://backend:8000
+    ports:
+      - "${PUERTO_WEB:-5173}:5173" # en el servidor: PUERTO_WEB=80 en .env
+    volumes:
+      - ./frontend:/app
+      - /app/node_modules
+    depends_on:
+      - backend
+    restart: unless-stopped
+
+  # --- Postgres: se levanta siempre con `docker compose up` (usarlo o no es opcional) ---
+  # Sin puertos publicados: solo el backend lo ve dentro de la red de Docker, por eso la
+  # contraseña por defecto no queda expuesta. Cambiarla con POSTGRES_PASSWORD (y DATABASE_URL) en .env.
+  # Huawei RDS for PostgreSQL: solo cambia DATABASE_URL.
+  base_datos:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-zeroday}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-zeroday}
+      POSTGRES_DB: ${POSTGRES_DB:-zeroday}
+    volumes:
+      - datos_postgres:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U $${POSTGRES_USER} -d $${POSTGRES_DB}"]
+      interval: 5s
+      timeout: 3s
+      retries: 10
+    restart: unless-stopped
+
+volumes:
+  datos_postgres:

@@ -1,0 +1,308 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=1600">
+<title>05 · Flujo del agente — Centinela (Operación clara)</title>
+<style>
+  :root{
+    --fondo:#FAF9F7; --sup:#FFFFFF; --sutil:#F3F2EF; --borde:#E4E2DD;
+    --t1:#161618; --t2:#4A4A4F; --t3:#6B6B70;
+    --acento:#2952E3; --acento-suave:#E8EDFD; --acento-osc:#1E3FB8;
+    --ok:#15803D; --ok-f:#DCFCE7; --adv:#92400E; --adv-f:#FEF3C7;
+    --cri:#B91C1C; --cri-f:#FEE2E2;
+    --sans: ui-sans-serif, system-ui, -apple-system, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:#E9E7E2;font-family:var(--sans);color:var(--t1);width:1600px}
+  .rotulo{height:64px;display:flex;align-items:center;gap:14px;padding:0 32px;font-size:20px;color:#161618}
+  .rotulo b{background:#161618;color:#fff;border-radius:8px;padding:4px 12px;font-size:17px}
+  .rotulo span{color:#4A4A4F;font-size:17px}
+  .pantalla{width:1600px;height:1000px;background:var(--fondo);display:grid;grid-template-rows:72px 64px 1fr;overflow:hidden}
+  .num{font-variant-numeric:tabular-nums}
+  .barra{display:flex;align-items:center;gap:20px;padding:0 32px;background:var(--sup);border-bottom:1px solid var(--borde)}
+  .marca{display:flex;align-items:center;gap:12px;font-weight:800;font-size:22px}
+  .marca svg{width:34px;height:34px}
+  .producto{font-size:18px;color:var(--t2);border-left:1px solid var(--borde);padding-left:20px}
+  .producto b{color:var(--t1)}
+  .esp{flex:1}
+  .insignia{display:inline-flex;align-items:center;gap:8px;border-radius:999px;padding:6px 14px;font-size:16px;font-weight:600;border:1.5px solid}
+  .ins-live{color:var(--ok);background:var(--ok-f);border-color:#86EFAC}
+  .ins-bd{color:var(--t2);background:var(--sutil);border-color:var(--borde)}
+  .punto{width:10px;height:10px;border-radius:50%;background:currentColor}
+  .franja{display:flex;align-items:center;gap:20px;padding:0 32px;border-bottom:2px solid}
+  .f-info{background:var(--acento-suave);border-color:var(--acento)}
+  .f-ok{background:var(--ok-f);border-color:var(--ok)}
+  .f-err{background:var(--cri-f);border-color:var(--cri)}
+  .franja .msg{font-size:21px;font-weight:700}
+  .f-info .msg{color:var(--acento-osc)} .f-ok .msg{color:var(--ok)} .f-err .msg{color:var(--cri)}
+  .franja .msg span{font-weight:500;color:var(--t1)}
+  .pasos{list-style:none;margin-left:auto;display:flex;align-items:center;gap:10px;font-size:17px;color:var(--t2)}
+  .paso{display:flex;align-items:center;gap:8px}
+  .paso i{font-style:normal;width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-weight:700;font-size:15px;border:2px solid var(--t3);color:var(--t3);background:var(--sup)}
+  .paso.hecho i{background:var(--ok);border-color:var(--ok);color:#fff}
+  .paso.actual{color:var(--t1);font-weight:700}
+  .paso.actual i{background:var(--acento);border-color:var(--acento);color:#fff}
+  .paso.error{color:var(--cri);font-weight:700}
+  .paso.error i{background:var(--cri);border-color:var(--cri);color:#fff}
+  .cuerpo{display:grid;grid-template-columns:500px 1fr 440px;gap:20px;padding:20px 32px;min-height:0}
+  .panel{background:var(--sup);border:1px solid var(--borde);border-radius:14px;display:flex;flex-direction:column;min-height:0;overflow:hidden}
+  .panel h2{font-size:15px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);padding:16px 20px 10px;display:flex;justify-content:space-between}
+  .panel h2 small{text-transform:none;letter-spacing:0;font-size:15px;color:var(--t3);font-weight:500}
+  .senales{list-style:none;padding:0 12px 12px;display:flex;flex-direction:column;gap:5px}
+  .senal{display:grid;grid-template-columns:30px 1fr auto;gap:10px;align-items:start;padding:8px 10px;border-radius:10px;border:1.5px solid transparent}
+  .ico{width:30px;height:30px;border-radius:8px;display:grid;place-items:center;background:var(--sutil);color:var(--t2)}
+  .ico svg{width:18px;height:18px}
+  .txt{font-size:16px;line-height:1.3}
+  .txt b{font-weight:600}
+  .meta{font-size:13px;color:var(--t3);margin-top:2px}
+  .hora{font-size:14px;color:var(--t3)}
+  .fuente{font-size:12px;font-weight:700;color:var(--t2);background:var(--sutil);border-radius:6px;padding:1px 7px;margin-right:6px}
+  .senal.ruido{background:var(--sutil);padding:6px 10px}
+  .senal.ruido > div{display:flex;flex-wrap:wrap;align-items:center;gap:2px 8px}
+  .senal.ruido .txt{color:var(--t3);text-decoration:line-through}
+  .tag{font-size:12px;font-weight:700;color:var(--t2);background:#E4E2DD;border-radius:6px;padding:1px 7px}
+  .senal.nueva{border-color:#C7D3FA;background:#F7F9FF}
+  .senal.revisando{border-color:var(--acento);background:var(--acento-suave)}
+  .senal.evid{border-color:#C7D3FA;background:#F7F9FF}
+  .contenido{padding:4px 28px 22px;display:flex;flex-direction:column;gap:16px;height:100%}
+  .btn{font:inherit;font-size:19px;font-weight:700;border-radius:10px;padding:13px 18px;cursor:pointer;border:2px solid var(--borde);background:var(--sup);color:var(--t1);display:inline-flex;align-items:center;justify-content:center;gap:8px}
+  .btn-pri{background:var(--acento);border-color:var(--acento);color:#fff;font-size:21px;padding:15px 22px}
+  .btn:disabled{background:var(--sutil);color:var(--t3);border-color:var(--borde);cursor:not-allowed}
+  .grande{font-size:30px;line-height:1.25;font-weight:700;letter-spacing:-.01em}
+  .p{font-size:18px;color:var(--t2);line-height:1.45}
+  .p b{color:var(--t1)}
+  .lbl{font-size:14px;letter-spacing:.08em;text-transform:uppercase;color:var(--t2);font-weight:700}
+  .fuentes{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .fu{border:1px solid var(--borde);border-radius:10px;padding:12px 14px;font-size:16px;display:flex;justify-content:space-between;align-items:center}
+  .fu b{font-size:26px}
+  .pasos-ia{list-style:none;display:flex;flex-direction:column;gap:12px;font-size:19px}
+  .pasos-ia li{display:flex;gap:12px;align-items:flex-start;line-height:1.35}
+  .pasos-ia .ic{flex:none;width:26px;height:26px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800}
+  .ic-ok{background:var(--ok-f);color:var(--ok)}
+  .ic-run{border:3px solid #C7D3FA;border-top-color:var(--acento)}
+  .ic-pend{border:2px dashed #B9B7B1}
+  .pasos-ia .pend{color:var(--t3)}
+  .cursor{display:inline-block;width:10px;height:22px;background:var(--acento);vertical-align:-4px;margin-left:3px}
+  .reloj{font-size:64px;font-weight:800;letter-spacing:-.03em;color:var(--acento-osc);line-height:1}
+  .reloj small{font-size:26px;color:var(--t2);font-weight:700}
+  .esqueleto{display:flex;flex-direction:column;gap:12px}
+  .esqueleto i{display:block;height:18px;border-radius:6px;background:var(--sutil)}
+  .aviso{border-radius:12px;padding:16px 18px;font-size:17px;line-height:1.4;display:flex;gap:12px;align-items:flex-start}
+  .aviso svg{flex:none;width:24px;height:24px;margin-top:1px}
+  .av-info{background:var(--acento-suave);color:var(--acento-osc)}
+  .av-adv{background:var(--adv-f);color:var(--adv)}
+  .av-err{background:var(--cri-f);color:var(--cri);border:2px solid #FCA5A5}
+  .av-ok{background:var(--ok-f);color:var(--ok)}
+  .aviso b{color:inherit}
+  .linea{list-style:none;display:flex;flex-direction:column;gap:0}
+  .linea li{display:grid;grid-template-columns:34px 1fr auto;gap:12px;padding:12px 0;border-bottom:1px solid var(--borde);font-size:17px;align-items:start}
+  .linea li:last-child{border-bottom:0}
+  .linea .ic{width:28px;height:28px;border-radius:50%;display:grid;place-items:center;font-size:14px;font-weight:800}
+  .sim{font-size:12px;font-weight:800;color:var(--t2);background:var(--sutil);border:1px dashed #B9B7B1;border-radius:6px;padding:1px 7px;margin-left:6px}
+  .kpi-ok{display:flex;gap:16px}
+  .kpi-ok div{flex:1;border:1px solid var(--borde);border-radius:12px;padding:14px 16px}
+  .kpi-ok b{display:block;font-size:40px;font-weight:800;letter-spacing:-.02em}
+  .kpi-ok span{font-size:15px;color:var(--t2)}
+  .pulso{animation:pulso 1.6s ease-in-out infinite}
+  .gira{animation:gira 1s linear infinite}
+  @keyframes pulso{50%{opacity:.4}}
+  @keyframes gira{to{transform:rotate(360deg)}}
+  @media (prefers-reduced-motion: reduce){ *{animation:none!important;transition:none!important} }
+  .nota-final{padding:28px 32px 40px;font-size:15px;line-height:1.5;color:#161618;max-width:1200px}
+</style>
+</head>
+<body>
+
+<!-- ============ 1 · ENTRADA ============ -->
+<p class="rotulo"><b>1 · Entrada</b><span>Llegan señales de 4 fuentes; nada analizado todavía. Un solo botón para empezar.</span></p>
+<main class="pantalla" aria-label="Paso 1: señales nuevas">
+  <header class="barra">
+    <div class="marca"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2952E3"/><path d="M10 11h14L10 23h14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Zero Day</div>
+    <div class="producto"><b>Centinela</b> · respuesta a incidentes · Pagos Austral S.A.</div>
+    <div class="esp"></div>
+    <span class="insignia ins-live"><span class="punto" aria-hidden="true"></span>Kostra LIVE · deepseek-v4.1-flash</span>
+    <span class="insignia ins-bd"><span class="punto" aria-hidden="true"></span>BD conectada</span>
+  </header>
+  <section class="franja f-info">
+    <p class="msg">8 señales nuevas <span>de 4 fuentes en los últimos 15 min · listas para analizar</span></p>
+    <ol class="pasos"><li class="paso actual"><i>1</i>Señales</li><li aria-hidden="true">→</li><li class="paso"><i>2</i>Diagnóstico</li><li aria-hidden="true">→</li><li class="paso"><i>3</i>Aprobación</li></ol>
+  </section>
+  <div class="cuerpo">
+    <section class="panel"><h2>Señales <small>8 sin revisar</small></h2>
+      <ul class="senales">
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div><p class="txt"><span class="fuente">Log</span>“pool de conexiones agotado (50/50), timeout 30 s”</p><p class="meta">pagos-api · 312 repeticiones</p></div><span class="hora num">09:02</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>latencia p95 de /checkout sobre 8 s</p><p class="meta">Cloud Eye</p></div><span class="hora num">09:01</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><div><p class="txt"><span class="fuente">Despliegue</span>v2.14.0 de pagos-api</p><p class="meta">pipeline</p></div><span class="hora num">08:54</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></span><div><p class="txt"><span class="fuente">Ticket</span>“no puedo pagar, se queda cargando”</p><p class="meta">soporte · 17 similares</p></div><span class="hora num">09:05</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span><div><p class="txt"><span class="fuente">Chat</span>“¿alguien tocó pagos hoy?”</p><p class="meta">#ops</p></div><span class="hora num">09:06</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>disco al 81 % en backup-02</p><p class="meta">Cloud Eye</p></div><span class="hora num">09:03</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span><div><p class="txt"><span class="fuente">Chat</span>“¿quién pide almuerzo hoy?”</p><p class="meta">#ops</p></div><span class="hora num">09:04</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>CPU 72 % en reportes-batch</p><p class="meta">Cloud Eye</p></div><span class="hora num">08:58</span></li>
+      </ul>
+    </section>
+    <section class="panel"><h2>Qué va a hacer el agente</h2>
+      <div class="contenido">
+        <p class="grande">Separar el ruido, encontrar la causa raíz con evidencia y proponerte una acción.</p>
+        <div class="fuentes">
+          <div class="fu">Logs <b class="num">1</b></div><div class="fu">Alertas de monitoreo <b class="num">3</b></div>
+          <div class="fu">Tickets <b class="num">1</b></div><div class="fu">Chat <b class="num">2</b></div>
+        </div>
+        <div class="aviso av-info"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg><p>El texto de las señales se trata como <b>datos, no como instrucciones</b>. Nada se ejecuta sin tu aprobación.</p></div>
+        <button class="btn btn-pri" style="margin-top:auto;align-self:flex-start">Analizar 8 señales</button>
+      </div>
+    </section>
+    <section class="panel"><h2>Acción propuesta</h2>
+      <div class="contenido" style="justify-content:center;align-items:center;text-align:center">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#6B6B70" stroke-width="1.6" aria-hidden="true"><rect x="4" y="4" width="16" height="16" rx="3"/><path d="M8 12h8M12 8v8"/></svg>
+        <p class="p">Aún no hay propuesta.<br>Aparecerá aquí cuando el diagnóstico esté listo.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============ 2 · ANALIZANDO ============ -->
+<p class="rotulo"><b>2 · Analizando</b><span>El agente muestra en qué está (streaming). Reloj grande: la espera es parte de la historia, no un spinner mudo.</span></p>
+<main class="pantalla" aria-label="Paso 2: analizando">
+  <header class="barra">
+    <div class="marca"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2952E3"/><path d="M10 11h14L10 23h14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Zero Day</div>
+    <div class="producto"><b>Centinela</b> · respuesta a incidentes · Pagos Austral S.A.</div>
+    <div class="esp"></div>
+    <span class="insignia ins-live"><span class="punto pulso" aria-hidden="true"></span>Kostra LIVE · deepseek-v4.1-flash</span>
+    <span class="insignia ins-bd"><span class="punto" aria-hidden="true"></span>BD conectada</span>
+  </header>
+  <section class="franja f-info" aria-live="polite">
+    <p class="msg"><span class="pulso">●</span> Analizando señales… <span>la IA está buscando la causa raíz</span></p>
+    <ol class="pasos"><li class="paso hecho"><i>✓</i>Señales</li><li aria-hidden="true">→</li><li class="paso actual"><i class="gira" style="border-top-color:#fff">·</i>Diagnóstico</li><li aria-hidden="true">→</li><li class="paso"><i>3</i>Aprobación</li></ol>
+  </section>
+  <div class="cuerpo">
+    <section class="panel"><h2>Señales <small>clasificando…</small></h2>
+      <ul class="senales">
+        <li class="senal revisando"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div><p class="txt"><span class="fuente">Log</span>“pool de conexiones agotado (50/50), timeout 30 s”</p><p class="meta">revisando…</p></div><span class="hora num">09:02</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>latencia p95 de /checkout sobre 8 s</p><p class="meta">relevante</p></div><span class="hora num">09:01</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><div><p class="txt"><span class="fuente">Despliegue</span>v2.14.0 de pagos-api</p><p class="meta">relevante</p></div><span class="hora num">08:54</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></span><div><p class="txt"><span class="fuente">Ticket</span>“no puedo pagar, se queda cargando”</p><p class="meta">relevante</p></div><span class="hora num">09:05</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span><div><p class="txt"><span class="fuente">Chat</span>“¿alguien tocó pagos hoy?”</p><p class="meta">relevante</p></div><span class="hora num">09:06</span></li>
+        <li class="senal ruido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt">disco al 81 % en backup-02</p><span class="tag">Ruido</span></div><span class="hora num">09:03</span></li>
+        <li class="senal ruido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span><div><p class="txt">“¿quién pide almuerzo hoy?”</p><span class="tag">Ruido</span></div><span class="hora num">09:04</span></li>
+        <li class="senal ruido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt">CPU 72 % en reportes-batch</p><span class="tag">Falso positivo</span></div><span class="hora num">08:58</span></li>
+      </ul>
+    </section>
+    <section class="panel"><h2>Razonamiento en vivo <small>streaming desde Kostra</small></h2>
+      <div class="contenido">
+        <p class="reloj num">3,1 <small>s</small></p>
+        <ol class="pasos-ia">
+          <li><span class="ic ic-ok">✓</span><span>Agrupé las 8 señales por servicio: <b>pagos-api</b> concentra 5.</span></li>
+          <li><span class="ic ic-ok">✓</span><span>Descarté 3 como ruido: alerta recurrente de disco, job nocturno y conversación no técnica.</span></li>
+          <li><span class="ic ic-run gira"></span><span>Buscando un cambio reciente en pagos-api… encontré el despliegue v2.14.0 a las 08:54<span class="cursor pulso"></span></span></li>
+          <li class="pend"><span class="ic ic-pend"></span><span>Proponer una acción con riesgo y reversa</span></li>
+        </ol>
+        <div class="aviso av-adv" style="margin-top:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 7v5l3 2"/></svg><p><b>Si pasa de 20 s:</b> “La IA está tardando más de lo normal; puede demorar hasta 90 s. Si se pasa, verás un error con la opción de reintentar.”</p></div>
+      </div>
+    </section>
+    <section class="panel"><h2>Acción propuesta</h2>
+      <div class="contenido">
+        <div class="esqueleto" aria-hidden="true"><i style="width:80%;height:26px"></i><i style="width:45%"></i><i style="width:100%;height:110px"></i></div>
+        <p class="p">Se propondrá una acción cuando el diagnóstico esté listo.</p>
+        <button class="btn" disabled style="margin-top:auto">Aprobar · esperando diagnóstico</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============ 3 · APROBADA ============ -->
+<p class="rotulo"><b>3 · Aprobada</b><span>Después de la 04 (diagnóstico listo). Queda registro de quién aprobó; lo simulado se marca como simulado.</span></p>
+<main class="pantalla" aria-label="Paso 3: acción aprobada">
+  <header class="barra">
+    <div class="marca"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2952E3"/><path d="M10 11h14L10 23h14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Zero Day</div>
+    <div class="producto"><b>Centinela</b> · respuesta a incidentes · Pagos Austral S.A.</div>
+    <div class="esp"></div>
+    <span class="insignia ins-live"><span class="punto" aria-hidden="true"></span>Kostra LIVE · deepseek-v4.1-flash</span>
+    <span class="insignia ins-bd"><span class="punto" aria-hidden="true"></span>BD conectada</span>
+  </header>
+  <section class="franja f-ok">
+    <p class="msg">✓ Acción aprobada <span>por Camila Rojas (turno SRE) a las 09:14 · ejecución simulada en la demo</span></p>
+    <ol class="pasos"><li class="paso hecho"><i>✓</i>Señales</li><li aria-hidden="true">→</li><li class="paso hecho"><i>✓</i>Diagnóstico</li><li aria-hidden="true">→</li><li class="paso hecho"><i>✓</i>Aprobación</li></ol>
+  </section>
+  <div class="cuerpo">
+    <section class="panel"><h2>Señales <small>incidente resuelto</small></h2>
+      <ul class="senales">
+        <li class="senal evid"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div><p class="txt"><span class="fuente">Log</span>“pool de conexiones agotado (50/50)”</p><p class="meta">evidencia S2</p></div><span class="hora num">09:02</span></li>
+        <li class="senal evid"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><div><p class="txt"><span class="fuente">Despliegue</span>v2.14.0: pool 200 → 50</p><p class="meta">evidencia S5</p></div><span class="hora num">08:54</span></li>
+        <li class="senal evid"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>p95 de /checkout sobre 8 s</p><p class="meta">evidencia S1</p></div><span class="hora num">09:01</span></li>
+        <li class="senal evid"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></span><div><p class="txt"><span class="fuente">Ticket</span>17 tickets de pago</p><p class="meta">evidencia S3</p></div><span class="hora num">09:05</span></li>
+        <li class="senal ruido"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt">3 señales descartadas como ruido</p></div><span class="hora num"></span></li>
+      </ul>
+    </section>
+    <section class="panel"><h2>Resumen del incidente</h2>
+      <div class="contenido">
+        <p class="grande">Checkout restablecido revirtiendo pagos-api a v2.13.2.</p>
+        <div class="kpi-ok">
+          <div><b class="num">12 min</b><span>desde la primera alerta hasta la aprobación</span></div>
+          <div><b class="num">4/4</b><span>evidencias verificadas en las señales</span></div>
+        </div>
+        <p class="p">Causa raíz: el despliegue v2.14.0 redujo el pool de conexiones de 200 a 50. <b>Seguimiento sugerido:</b> revisar el cambio de configuración antes de volver a desplegar.</p>
+        <div class="aviso av-info" style="margin-top:auto"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2"><circle cx="12" cy="12" r="9"/><path d="M12 11v6M12 7.5h.01"/></svg><p>El tiempo de 12 min es de este caso de demo. El ahorro frente al proceso manual es un <b>estimado</b> a validar en el piloto.</p></div>
+      </div>
+    </section>
+    <section class="panel"><h2>Registro de la acción</h2>
+      <div class="contenido">
+        <ul class="linea">
+          <li><span class="ic ic-ok">✓</span><span><b>Propuesta por el agente</b><br><span class="meta">revertir pagos-api a v2.13.2 · riesgo medio</span></span><span class="hora num">09:12</span></li>
+          <li><span class="ic ic-ok">✓</span><span><b>Aprobada por Camila Rojas</b><br><span class="meta">turno de guardia SRE</span></span><span class="hora num">09:14</span></li>
+          <li><span class="ic ic-ok">✓</span><span><b>Reversa ejecutada</b><span class="sim">SIMULADO</span><br><span class="meta">3 instancias reiniciadas</span></span><span class="hora num">09:15</span></li>
+          <li><span class="ic ic-ok">✓</span><span><b>Verificación: p95 0,8 s</b><span class="sim">SIMULADO</span><br><span class="meta">criterio de éxito: p95 &lt; 1 s en 10 min</span></span><span class="hora num">09:25</span></li>
+        </ul>
+        <button class="btn" style="margin-top:auto">Analizar nuevas señales</button>
+      </div>
+    </section>
+  </div>
+</main>
+
+<!-- ============ 4 · ERROR ============ -->
+<p class="rotulo"><b>4 · Error de la IA</b><span>Kostra limitó las peticiones (429). Se dice claro, se puede reintentar y nunca se inventa un diagnóstico ni se cambia a MOCK en silencio.</span></p>
+<main class="pantalla" aria-label="Paso alternativo: error de la IA">
+  <header class="barra">
+    <div class="marca"><svg viewBox="0 0 34 34" aria-hidden="true"><rect width="34" height="34" rx="9" fill="#2952E3"/><path d="M10 11h14L10 23h14" stroke="#fff" stroke-width="3.2" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>Zero Day</div>
+    <div class="producto"><b>Centinela</b> · respuesta a incidentes · Pagos Austral S.A.</div>
+    <div class="esp"></div>
+    <span class="insignia ins-live"><span class="punto" aria-hidden="true"></span>Kostra LIVE · deepseek-v4.1-flash</span>
+    <span class="insignia ins-bd"><span class="punto" aria-hidden="true"></span>BD conectada</span>
+  </header>
+  <section class="franja f-err" role="alert">
+    <p class="msg">✕ No se pudo completar el diagnóstico <span>· Kostra limitó las peticiones (429) · se reintentó 1 vez</span></p>
+    <ol class="pasos"><li class="paso hecho"><i>✓</i>Señales</li><li aria-hidden="true">→</li><li class="paso error"><i>!</i>Diagnóstico</li><li aria-hidden="true">→</li><li class="paso"><i>3</i>Aprobación</li></ol>
+  </section>
+  <div class="cuerpo">
+    <section class="panel"><h2>Señales <small>8 sin cambios</small></h2>
+      <ul class="senales">
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 6h16M4 12h16M4 18h10"/></svg></span><div><p class="txt"><span class="fuente">Log</span>“pool de conexiones agotado (50/50), timeout 30 s”</p></div><span class="hora num">09:02</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3l9 16H3z"/></svg></span><div><p class="txt"><span class="fuente">Alerta</span>latencia p95 de /checkout sobre 8 s</p></div><span class="hora num">09:01</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 3v12M7 10l5 5 5-5M5 21h14"/></svg></span><div><p class="txt"><span class="fuente">Despliegue</span>v2.14.0 de pagos-api</p></div><span class="hora num">08:54</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="6" width="18" height="12" rx="2"/></svg></span><div><p class="txt"><span class="fuente">Ticket</span>“no puedo pagar, se queda cargando”</p></div><span class="hora num">09:05</span></li>
+        <li class="senal nueva"><span class="ico"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M4 5h16v11H9l-5 4z"/></svg></span><div><p class="txt"><span class="fuente">Chat</span>“¿alguien tocó pagos hoy?”</p></div><span class="hora num">09:06</span></li>
+      </ul>
+    </section>
+    <section class="panel"><h2>Causa raíz probable</h2>
+      <div class="contenido">
+        <div class="aviso av-err"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4"><circle cx="12" cy="12" r="9"/><path d="M12 7v6M12 16.5h.01"/></svg>
+          <div><p style="font-size:20px;font-weight:800;margin-bottom:6px">Kostra limitó las peticiones (429).</p><p>Espera unos segundos y reintenta. Tus señales siguen aquí; no se perdió nada.</p></div></div>
+        <p class="p"><b>No mostramos un diagnóstico inventado.</b> Si la IA no responde, el sistema lo dice en vez de cambiar a respuestas simuladas sin avisar.</p>
+        <div style="display:flex;gap:12px;margin-top:auto">
+          <button class="btn btn-pri">Reintentar diagnóstico</button>
+          <button class="btn">Ver detalle técnico</button>
+        </div>
+      </div>
+    </section>
+    <section class="panel"><h2>Acción propuesta</h2>
+      <div class="contenido" style="justify-content:center;align-items:center;text-align:center">
+        <svg width="56" height="56" viewBox="0 0 24 24" fill="none" stroke="#6B6B70" stroke-width="1.6" aria-hidden="true"><rect x="5" y="11" width="14" height="10" rx="2"/><path d="M8 11V8a4 4 0 0 1 8 0v3"/></svg>
+        <p class="p">Sin diagnóstico no hay propuesta.<br>Nada se ejecuta.</p>
+      </div>
+    </section>
+  </div>
+</main>
+
+<p class="nota-final"><b>Por qué / tradeoff.</b> Misma paleta y estructura de 3 columnas que la 04, para que la demo se recorra siempre igual: señales → causa → acción. La franja superior cambia de color con el estado (azul trabajando, verde aprobado, rojo error) y siempre lleva texto. El paso “Analizando” convierte la latencia de Kostra en algo visible (reloj + razonamiento en vivo). Lo simulado se marca con la etiqueta SIMULADO. Costo: el razonamiento en vivo depende de que el prompt pida pasos cortos por streaming; si no, se muestra solo el reloj.</p>
+</body>
+</html>

@@ -1,0 +1,41 @@
+{
+  "title": "Zero Day · estados y sistema visual",
+  "brief": "Estados de carga, vacío, streaming, resultado, error e historial (todo lo que no depende del desafío) más la paleta y escala tipográfica propuestas para la app de una pantalla de Zero Day (Hackatón Huawei INACAP 2026). Se presenta al jurado en proyector; textos en español; implementable con Tailwind CSS 3 sin librerías de componentes. Sin login.",
+  "artboards": [
+    {
+      "file": "01-consola-tecnica.html",
+      "title": "01 · Consola técnica (oscuro slate + índigo)",
+      "tradeoff": "Cambio mínimo sobre la UI actual y solo colores por defecto de Tailwind; el fondo oscuro se lava en un proyector con luz de día, aunque el texto secundario sube a slate-300 para compensar.",
+      "width": 1440,
+      "height": 1600
+    },
+    {
+      "file": "02-institucional-proyector.html",
+      "title": "02 · Institucional alto contraste (claro, cuerpo 18 px)",
+      "tradeoff": "La más legible en proyector (texto ≥ 7:1, estados con tinte + borde + ícono + texto) y sin colores personalizados; sobria y de poca personalidad, y con el cuerpo más grande cabe menos en pantalla.",
+      "width": 1440,
+      "height": 1600
+    },
+    {
+      "file": "03-senal-storyboard.html",
+      "title": "03 · Señal: el estado es el protagonista (papel, tinta y naranja)",
+      "tradeoff": "La espera se vuelve parte del pitch (banda de estado de color, contador gigante y pasos 1-2-3) y resiste bien el proyector; necesita 7 colores propios en tailwind.config, un componente de banda extra y disciplina: el naranja solo como relleno.",
+      "width": 1440,
+      "height": 1600
+    },
+    {
+      "file": "04-operacion-clara.html",
+      "title": "04 Operación clara (caso incidentes)",
+      "tradeoff": "Clara y cálida con un solo acento cobalto; legible en proyector y con evidencia junto a la propuesta. Pantalla densa de 3 columnas: hay que guiar la demo de izquierda a derecha.",
+      "width": 1600,
+      "height": 1240
+    },
+    {
+      "file": "05-flujo-agente.html",
+      "title": "05 Flujo del agente (entrada → analizando → aprobada → error)",
+      "tradeoff": "Storyboard completo con la paleta Operación clara: la demo se recorre siempre igual y cada estado (trabajando, aprobado, error) tiene franja con color y texto. Depende de que el prompt entregue pasos cortos para el razonamiento en vivo.",
+      "width": 1600,
+      "height": 4400
+    }
+  ]
+}

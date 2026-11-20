@@ -1,0 +1,21 @@
+{
+  "arrangement": "free",
+  "positions": {
+    "01-consola-tecnica.html": {
+      "x": 0,
+      "y": 0
+    },
+    "02-institucional-proyector.html": {
+      "x": 1520,
+      "y": 0
+    },
+    "03-senal-storyboard.html": {
+      "x": 3040,
+      "y": 0
+    },
+    "04-operacion-clara.html": {
+      "x": 4536,
+      "y": 4
+    }
+  }
+}
