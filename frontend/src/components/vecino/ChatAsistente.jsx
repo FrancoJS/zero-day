@@ -7,29 +7,29 @@ const FOCO = "focus:outline-none focus-visible:ring-2 focus-visible:ring-muni-pr
 function Burbuja({ mensaje }) {
   if (mensaje.rol === "yo") {
     return (
-      <div className="max-w-[78%] self-end whitespace-pre-line rounded-xl rounded-tr-md bg-muni-primary-a11y px-4 py-3 text-base text-white">
+      <div className="max-w-[80%] self-end whitespace-pre-line rounded-2xl rounded-tr-xs bg-muni-primary-a11y px-3.5 py-2.5 text-sm text-white shadow-xs">
         {mensaje.contenido}
-        <small className="mt-1.5 block text-sm tabular-nums opacity-75">{mensaje.hora}</small>
+        <small className="mt-1 block text-right text-xs tabular-nums text-white/70">{mensaje.hora}</small>
       </div>
     );
   }
   if (mensaje.rol === "error") {
     return (
-      <div role="alert" className="flex max-w-[78%] gap-2 self-start rounded-xl rounded-tl-md border border-critico-borde bg-critico-fondo px-4 py-3 text-base text-critico">
-        <TriangleAlert aria-hidden="true" className="mt-0.5 h-5 w-5 shrink-0" />
+      <div role="alert" className="flex max-w-[80%] gap-2 self-start rounded-2xl rounded-tl-xs border border-critico-borde bg-critico-fondo px-3.5 py-2.5 text-sm text-critico shadow-xs">
+        <TriangleAlert aria-hidden="true" className="mt-0.5 h-4 w-4 shrink-0" />
         <div>
-          <b className="block">No pude procesar tu mensaje</b>
+          <b className="block font-semibold">No se pudo procesar tu mensaje</b>
           {mensaje.contenido}
-          <small className="mt-1.5 block text-sm tabular-nums opacity-75">{mensaje.hora}</small>
+          <small className="mt-1 block text-xs tabular-nums opacity-75">{mensaje.hora}</small>
         </div>
       </div>
     );
   }
   return (
-    <div className="max-w-[78%] self-start rounded-xl rounded-tl-md border border-gray-200 bg-white px-4 py-3 text-base text-gray-900">
+    <div className="max-w-[80%] self-start rounded-2xl rounded-tl-xs border border-gray-200/90 bg-white px-3.5 py-2.5 text-sm text-gray-800 shadow-xs">
       {mensaje.contenido}
-      {mensaje.pregunta && <b className="mt-2 block font-semibold">{mensaje.pregunta}</b>}
-      {mensaje.hora && <small className="mt-1.5 block text-sm tabular-nums text-gray-500">{mensaje.hora}</small>}
+      {mensaje.pregunta && <b className="mt-1.5 block font-semibold text-gray-900">{mensaje.pregunta}</b>}
+      {mensaje.hora && <small className="mt-1 block text-xs tabular-nums text-gray-400">{mensaje.hora}</small>}
     </div>
   );
 }
@@ -78,18 +78,18 @@ export default function ChatAsistente({ mensajes, chips, escribiendo, bloqueado,
   const entrada = reducir ? {} : { initial: { opacity: 0, y: 8 }, animate: { opacity: 1, y: 0 }, transition: { duration: 0.2 } };
 
   return (
-    <section aria-labelledby="t-chat" className="flex min-h-0 flex-col rounded-xl border border-gray-200 bg-white shadow-sm">
-      <div className="flex items-center gap-3 border-b border-gray-200 px-5 py-3.5">
-        <div aria-hidden="true" className="grid h-10 w-10 shrink-0 place-items-center rounded-full border border-muni-primary-200 bg-muni-primary-50 text-muni-primary-a11y">
-          <Bot aria-hidden="true" className="h-5 w-5" />
+    <section aria-labelledby="t-chat" className="flex min-h-0 flex-col overflow-hidden rounded-2xl border border-gray-200/80 bg-white shadow-xs">
+      <div className="flex shrink-0 items-center gap-3 border-b border-gray-100 px-4 py-2.5 sm:px-5 sm:py-3">
+        <div aria-hidden="true" className="grid h-8 w-8 sm:h-9 sm:w-9 shrink-0 place-items-center rounded-full border border-muni-primary/20 bg-muni-primary/10 text-muni-primary-a11y">
+          <Bot aria-hidden="true" className="h-4 w-4 sm:h-4.5 sm:w-4.5" />
         </div>
         <div>
-          <b id="t-chat" className="block text-base">Asistente de reportes</b>
-          <span className="text-sm text-gray-600">Te ayuda a reportar un microbasural en Rancagua</span>
+          <b id="t-chat" className="block text-sm sm:text-base font-semibold leading-tight text-gray-900">Asistente de reportes</b>
+          <span className="text-xs text-gray-500">Te ayuda a clasificar y coordinar el retiro en Rancagua</span>
         </div>
       </div>
 
-      <div ref={lista} role="log" aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-3.5 overflow-auto bg-gray-50 p-5">
+      <div ref={lista} role="log" aria-live="polite" className="flex min-h-0 flex-1 flex-col gap-3 overflow-y-auto bg-gray-50/70 p-4 sm:p-5">
         <AnimatePresence initial={false}>
           {mensajes.map((m) => (
             <motion.div key={m.id} className="flex flex-col" {...entrada}>
@@ -98,15 +98,15 @@ export default function ChatAsistente({ mensajes, chips, escribiendo, bloqueado,
           ))}
         </AnimatePresence>
         {!escribiendo && chips.length > 0 && (
-          <motion.div aria-label="Respuestas rápidas" role="group" className="flex max-w-[78%] flex-wrap gap-2 self-start" {...entrada}>
+          <motion.div aria-label="Respuestas rápidas" role="group" className="flex max-w-[85%] flex-wrap gap-1.5 self-start pt-1" {...entrada}>
             {chips.map((c) => (
               <button
                 key={c.texto}
                 type="button"
                 onClick={c.alElegir}
-                className={`inline-flex items-center gap-1.5 rounded-full border border-muni-primary-200 bg-white px-3.5 py-1.5 text-[15px] font-semibold text-muni-primary-a11y hover:bg-muni-primary-50 ${FOCO}`}
+                className={`inline-flex items-center gap-1.5 rounded-full border border-muni-primary/25 bg-white px-3 py-1 text-xs font-semibold text-muni-primary-a11y shadow-2xs hover:bg-muni-primary/10 ${FOCO}`}
               >
-                {c.reintentar && <RotateCcw aria-hidden="true" className="h-4 w-4" />}
+                {c.reintentar && <RotateCcw aria-hidden="true" className="h-3.5 w-3.5" />}
                 {c.texto}
               </button>
             ))}
@@ -116,7 +116,7 @@ export default function ChatAsistente({ mensajes, chips, escribiendo, bloqueado,
       </div>
 
       <form
-        className="flex items-end gap-2.5 border-t border-gray-200 px-5 py-3.5"
+        className="flex items-end gap-2 border-t border-gray-100 px-4 py-2.5 sm:px-5 sm:py-3"
         onSubmit={(e) => {
           e.preventDefault();
           enviar();
@@ -136,20 +136,20 @@ export default function ChatAsistente({ mensajes, chips, escribiendo, bloqueado,
             }
           }}
           placeholder={bloqueado ? "Reporte enviado" : mensajes.length > 1 ? "Escribe tu respuesta…" : "Ej.: Botaron escombros en la esquina de…"}
-          className="h-12 flex-1 resize-none rounded-lg border border-gray-300 bg-white px-3 py-2.5 text-base text-gray-900 placeholder-gray-500 focus:border-muni-primary focus:outline-none focus:ring-2 focus:ring-muni-primary/20 disabled:bg-gray-100"
+          className="h-10 sm:h-11 flex-1 resize-none rounded-xl border border-gray-200 bg-gray-50/60 px-3.5 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-muni-primary focus:bg-white focus:outline-none focus:ring-2 focus:ring-muni-primary/20 disabled:bg-gray-100"
         />
         <button
           type="submit"
           disabled={bloqueado || escribiendo || !borrador.trim()}
-          className={`inline-flex h-12 shrink-0 items-center justify-center gap-2 rounded-lg bg-muni-primary-a11y px-5 text-base font-semibold text-white hover:bg-muni-primary-700 disabled:cursor-not-allowed disabled:opacity-60 ${FOCO}`}
+          className={`inline-flex h-10 sm:h-11 shrink-0 items-center justify-center gap-1.5 rounded-xl bg-muni-primary-a11y px-4 text-xs sm:text-sm font-semibold text-white shadow-xs transition-colors hover:bg-muni-primary-700 disabled:cursor-not-allowed disabled:bg-gray-200 disabled:text-gray-400 ${FOCO}`}
         >
-          <Send aria-hidden="true" className="h-5 w-5" />
-          Enviar
+          <Send aria-hidden="true" className="h-3.5 w-3.5" />
+          <span>Enviar</span>
         </button>
       </form>
-      <p className="flex items-center gap-2 px-5 pb-3.5 text-sm text-gray-600">
-        <Lock aria-hidden="true" className="h-4 w-4 shrink-0" />
-        No escribas tu RUT ni tu teléfono: si los pones, se ocultan antes de guardar.
+      <p className="flex items-center gap-1.5 px-4 pb-2.5 sm:px-5 sm:pb-3 text-xs text-gray-500">
+        <Lock aria-hidden="true" className="h-3.5 w-3.5 shrink-0 text-gray-400" />
+        No escribas RUT ni teléfono: se filtran automáticamente antes de guardar.
       </p>
     </section>
   );

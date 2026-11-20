@@ -19,9 +19,9 @@ export default function App() {
     );
   }
   return (
-    <div className="flex h-screen min-h-[720px] flex-col bg-gray-50 text-gray-900">
+    <div className="flex h-dvh flex-col overflow-hidden bg-gray-50 text-gray-900">
       <BarraMunicipal vista={vista} />
-      <main className="min-h-0 flex-1">
+      <main className="flex min-h-0 flex-1 flex-col overflow-hidden">
         <Suspense fallback={<p className="p-8 text-gray-600">Cargando…</p>}>
           {vista === "encargado" ? <VistaEncargado /> : <VistaVecino />}
         </Suspense>
