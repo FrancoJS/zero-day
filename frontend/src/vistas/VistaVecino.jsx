@@ -48,8 +48,10 @@ export default function VistaVecino() {
     ? [sector, resultado.tipo_residuo, resultado.prioridad, resultado.ubicacion].filter(Boolean).length + (falta.length === 0 ? 1 : 0)
     : sector ? 1 : 0;
   const total = 5;
-  const completo = Boolean(sector && resultado && !noEsResiduo && falta.length === 0);
-  const puedeEnviar = Boolean(sector && resultado && !noEsResiduo && (completo || respondidos >= MAX_SEGUIMIENTOS));
+  const faltaObligatorio = falta.filter((f) => !/volumen/i.test(f));
+  // Obligatorios: sector, tipo de residuo y ubicación. El volumen es opcional y no bloquea el envío.
+  const completo = Boolean(sector && resultado && !noEsResiduo && resultado.ubicacion && faltaObligatorio.length === 0);
+  const puedeEnviar = completo;
   const texto = textos.join("\n");
 
   const agregar = (...nuevos) =>
@@ -93,7 +95,7 @@ export default function VistaVecino() {
 
   /** Pregunta de seguimiento (máx. 2) o cierre, según el resultado y los contadores actuales. */
   const cierre = (r, hechas) => {
-    if (r.pregunta_seguimiento && (r.falta_informacion || []).length && hechas < MAX_SEGUIMIENTOS) {
+    if (r.pregunta_seguimiento && (r.falta_informacion || []).length) {
       setSeguimientos(hechas + 1);
       setPreguntaPendiente(true);
       setChips(esSobreVolumen(r.pregunta_seguimiento, r.falta_informacion) ? { tipo: "volumen" } : null);
@@ -102,9 +104,7 @@ export default function VistaVecino() {
     setPreguntaPendiente(false);
     setChips(null);
     return {
-      pregunta: (r.falta_informacion || []).length
-        ? "Con esto basta: puedes enviar tu reporte a la derecha."
-        : "Tu reporte está listo: revísalo a la derecha y envíalo a Gestión de Calidad.",
+      pregunta: r.ubicacion ? null : "¿Me indicas la calle, la esquina o una referencia del lugar?",
     };
   };
 
@@ -126,15 +126,17 @@ export default function VistaVecino() {
         agregar({
           rol: "bot",
           contenido:
-            "Este canal es solo para residuos y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
+            r.respuesta_vecino ||
+            "Este canal es solo para basura y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
           pregunta: "Si además viste basura botada, cuéntamelo y lo agrego.",
         });
         return;
       }
-      const entendi = `${lista.length === 1 ? "Gracias, ya lo estoy ordenando a la derecha. " : ""}Esto es lo que entendí: ${r.resumen}`;
+      const voz = (r.respuesta_vecino || r.resumen || "").trim();
+      const entendi = r.pregunta_seguimiento ? voz.replace(r.pregunta_seguimiento, "").trim() || voz : voz;
       if (!sid) {
         setChips({ tipo: "sector" });
-        agregar({ rol: "bot", contenido: entendi, pregunta: "¿En qué sector está?" });
+        agregar({ rol: "bot", contenido: entendi, pregunta: "¿En qué sector de Rancagua está?" });
         return;
       }
       agregar({ rol: "bot", contenido: entendi, ...cierre(r, seguimientos) });
@@ -160,7 +162,7 @@ export default function VistaVecino() {
     agregar({ rol: "yo", contenido: s.nombre });
     if (resultado) {
       setVisibles((v) => Math.max(v, filasDelReporte(s, resultado).length));
-      agregar({ rol: "bot", contenido: `Anotado: ${s.nombre}.`, ...cierre(resultado, seguimientos) });
+      agregar({ rol: "bot", contenido: `Perfecto, quedó en ${s.nombre}.`, ...cierre(resultado, seguimientos) });
     } else setChips(null);
   };
 
@@ -172,7 +174,7 @@ export default function VistaVecino() {
       const { datos, ejemplo: e } = await enviarReporte(texto, sectorId);
       marcarEjemplo(e);
       setReporte(datos);
-      agregar({ rol: "bot", contenido: `Listo, enviamos tu reporte (folio #${String(datos.id).padStart(4, "0")}). Gracias por ayudar a tu barrio.` });
+      agregar({ rol: "bot", contenido: `Listo, tu reporte quedó registrado con el folio #${String(datos.id).padStart(4, "0")}. El equipo de Gestión de Calidad lo revisará. ¡Gracias por cuidar tu barrio!` });
     } catch (err) {
       agregar({ rol: "error", contenido: `No se pudo enviar el reporte: ${err.message || "error desconocido."}` });
       setChips({ tipo: "reintentar", accion: "enviar" });

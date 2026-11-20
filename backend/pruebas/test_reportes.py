@@ -1,3 +1,4 @@
+import json
 """Pruebas de los endpoints de reportes (odd/contrato-api.md v2, T2 / Módulo 2)."""
 
 import tempfile
@@ -40,6 +41,25 @@ class PruebasSectoresYBorrador(PruebaAislada):
         self.assertEqual(sectores[0]["id"], "centro")
         self.assertIn("lat", sectores[0])
         self.assertIn("lng", sectores[0])
+
+    def test_borrador_exige_ubicacion_pero_no_volumen(self):
+        """Obligatorios: sector, tipo y ubicación. El volumen faltante no bloquea el envío."""
+        from unittest import mock
+        import analisis as modulo_analisis
+        base = {"tipo_residuo": "escombros", "peligrosidad": "media", "prioridad": "alta",
+                "accion_sugerida": "camion_tolva", "resumen": "Escombros junto a un colegio.",
+                "evidencia": ["junto al colegio"], "pregunta_seguimiento": None, "respuesta_vecino": "Gracias."}
+        cliente = self.cliente()
+        casos = [
+            ({**base, "ubicacion": None, "falta_informacion": []}, False),
+            ({**base, "ubicacion": "pasaje Los Aromos", "falta_informacion": ["volumen aproximado"]}, True),
+            ({**base, "ubicacion": "pasaje Los Aromos", "falta_informacion": ["ubicación exacta"]}, False),
+        ]
+        for resultado, esperado in casos:
+            with mock.patch.object(modulo_analisis, "analisis_mock", return_value=json.dumps(resultado)):
+                r = cliente.post("/api/reportes/borrador", json={"texto": "escombros junto al colegio", "sector_id": "sur"})
+            self.assertEqual(r.status_code, 200)
+            self.assertEqual(r.json()["completo"], esperado, resultado)
 
     def test_borrador_analiza_sin_guardar_y_calcula_completo(self):
         cliente = self.cliente()

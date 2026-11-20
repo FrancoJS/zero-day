@@ -75,6 +75,23 @@ class PruebasContrato(PruebaAislada):
         self.assertIsNone(buscar_sector(None))
 
 
+class PruebasAsistenteNatural(PruebaAislada):
+    def test_evidencia_larga_se_descarta_y_la_corta_se_conserva(self):
+        oracion = "Botaron escombros y un colchón en la esquina del pasaje Los Aromos con Av. España, justo al lado del colegio"
+        r = ResultadoAnalisis.model_validate({**RESULTADO, "evidencia": [oracion, "junto al colegio"]})
+        self.assertEqual(r.evidencia, ["junto al colegio"])
+
+    def test_respuesta_vecino_es_opcional_y_tolerante(self):
+        self.assertIsNone(ResultadoAnalisis.model_validate({**RESULTADO, "respuesta_vecino": "  "}).respuesta_vecino)
+        texto = ResultadoAnalisis.model_validate({**RESULTADO, "respuesta_vecino": "Gracias, entendí."}).respuesta_vecino
+        self.assertEqual(texto, "Gracias, entendí.")
+
+    def test_mock_trae_respuesta_al_vecino_sin_codigos_internos(self):
+        datos = json.loads(analisis.analisis_mock("Botaron escombros en la esquina de pasaje Los Aromos"))
+        self.assertTrue(datos["respuesta_vecino"])
+        self.assertNotIn("camion_tolva", datos["respuesta_vecino"])
+
+
 class PruebasMockCamposNuevos(PruebaAislada):
     def test_mock_pregunta_lo_que_falta(self):
         datos = json.loads(analisis.analisis_mock("Hay bolsas de basura tiradas hace días, huele muy mal"))
