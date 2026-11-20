@@ -131,6 +131,11 @@ ACCION_POR_TIPO = {
 PATRONES_SENSIBLES = r"\b\d{1,2}\.?\d{3}\.?\d{3}-[\dkK]\b|\+?56\s?9\s?\d{4}\s?\d{4}|\S+@\S+"
 
 
+def ocultar_datos_sensibles(texto: str) -> str:
+    """Reemplaza RUT, teléfonos y correos por [dato oculto] antes de guardar un reporte."""
+    return re.sub(PATRONES_SENSIBLES, "[dato oculto]", texto)
+
+
 def evidencia_mock(texto: str, palabras: tuple[str, ...]) -> list[str]:
     """Hasta 2 frases REALES del texto que contienen las palabras que decidieron el resultado.
     Nunca inventa texto y descarta frases con datos sensibles (RUT, teléfono, correo)."""
