@@ -18,8 +18,22 @@ from fastapi.responses import JSONResponse, StreamingResponse  # noqa: E402
 import bd  # noqa: E402
 import kostra  # noqa: E402
 import modelos  # noqa: E402
-from analisis import analizar_texto, responder_stream  # noqa: E402
-from esquemas import RegistroHistorial, RespuestaAnalisis, RespuestaHistorial, SolicitudTexto  # noqa: E402
+from analisis import analizar_texto, ocultar_datos_sensibles, responder_stream  # noqa: E402
+from esquemas import (  # noqa: E402
+    EstadoReporte,
+    RegistroHistorial,
+    Reporte,
+    RespuestaAnalisis,
+    RespuestaBandeja,
+    RespuestaBorrador,
+    RespuestaHistorial,
+    RespuestaSectores,
+    SolicitudBorrador,
+    SolicitudDecision,
+    SolicitudReporte,
+    SolicitudTexto,
+)
+from sectores import SECTORES, buscar_sector  # noqa: E402
 
 registro = logging.getLogger("zeroday.api")
 
@@ -55,6 +69,25 @@ async def manejar_entrada_invalida(_: Request, error: RequestValidationError) ->
     primero = error.errors()[0]
     detalle = traducciones.get(primero.get("type", ""), "revisa los datos enviados.")
     return JSONResponse(status_code=422, content={"codigo": "entrada_invalida", "mensaje": f"Entrada inválida: {detalle}"})
+
+
+def _error_sector_invalido() -> JSONResponse:
+    return JSONResponse(
+        status_code=422,
+        content={"codigo": "sector_invalido", "mensaje": "El sector indicado no existe en el catálogo de Rancagua."},
+    )
+
+
+def _error_bd_no_disponible(error: Exception | None = None) -> JSONResponse:
+    if error is not None:
+        registro.warning("Operación de reportes falló por base de datos (%s).", type(error).__name__)
+    return JSONResponse(
+        status_code=503,
+        content={
+            "codigo": "bd_no_disponible",
+            "mensaje": "No se pudo acceder a la base de datos de reportes. Revisa DATABASE_URL y el servicio base_datos.",
+        },
+    )
 
 
 @api.get("/health")
@@ -137,6 +170,83 @@ async def stream(solicitud: SolicitudTexto) -> StreamingResponse:
         media_type="text/event-stream",
         headers={"Cache-Control": "no-cache", "X-Accel-Buffering": "no"},
     )
+
+
+# --- Endpoints del contrato de reportes (odd/contrato-api.md v2, S9) ---
+
+
+@api.get("/sectores", response_model=RespuestaSectores)
+def listar_sectores() -> RespuestaSectores:
+    return RespuestaSectores(sectores=SECTORES)
+
+
+@api.post("/reportes/borrador", response_model=RespuestaBorrador)
+async def analizar_borrador_reporte(solicitud: SolicitudBorrador):
+    """Chat del vecino: analiza sin guardar y determina si el borrador está `completo`."""
+    sector = None
+    if solicitud.sector_id is not None:
+        sector = buscar_sector(solicitud.sector_id)
+        if sector is None:
+            return _error_sector_invalido()
+    respuesta = await analizar_texto(solicitud.texto)
+    completo = (sector is not None) and (len(respuesta.resultado.falta_informacion) == 0)
+    return RespuestaBorrador(analisis=respuesta, completo=completo)
+
+
+@api.post("/reportes", response_model=Reporte, status_code=201)
+async def crear_reporte(solicitud: SolicitudReporte):
+    """Envío final desde el chatbot del vecino: valida sector y BD, analiza con IA, oculta datos sensibles y guarda."""
+    sector = buscar_sector(solicitud.sector_id)
+    if sector is None:
+        return _error_sector_invalido()
+    if not bd.bd_activa() or not await run_in_threadpool(bd.preparar_tablas):
+        return _error_bd_no_disponible()
+    respuesta = await analizar_texto(solicitud.texto)
+    texto_limpio = ocultar_datos_sensibles(solicitud.texto)
+    try:
+        return await run_in_threadpool(modelos.crear_reporte, texto_limpio, sector.id, respuesta)
+    except Exception as error:
+        return _error_bd_no_disponible(error)
+
+
+@api.get("/reportes", response_model=RespuestaBandeja)
+async def obtener_bandeja(
+    estado: EstadoReporte | None = Query(None),
+    sector_id: str | None = Query(None),
+):
+    """Bandeja priorizada del encargado + resumen `por_sector` para el mapa."""
+    if not bd.bd_activa():
+        return _error_bd_no_disponible()
+    try:
+        return await run_in_threadpool(modelos.listar_bandeja, estado, sector_id, 100)
+    except Exception as error:
+        return _error_bd_no_disponible(error)
+
+
+@api.post("/reportes/{reporte_id}/decision", response_model=Reporte)
+async def decidir_reporte(reporte_id: int, solicitud: SolicitudDecision):
+    """Aprobar o rechazar el despacho propuesto para un reporte pendiente (simulado)."""
+    if not bd.bd_activa():
+        return _error_bd_no_disponible()
+    try:
+        return await run_in_threadpool(
+            modelos.registrar_decision,
+            reporte_id,
+            solicitud.decision,
+            solicitud.nota,
+        )
+    except modelos.ReporteNoEncontrado:
+        return JSONResponse(
+            status_code=404,
+            content={"codigo": "reporte_no_encontrado", "mensaje": "No se encontró el reporte indicado."},
+        )
+    except modelos.ReporteYaDecidido:
+        return JSONResponse(
+            status_code=409,
+            content={"codigo": "ya_decidido", "mensaje": "Este reporte ya fue aprobado o rechazado."},
+        )
+    except Exception as error:
+        return _error_bd_no_disponible(error)
 
 
 app.include_router(api)
