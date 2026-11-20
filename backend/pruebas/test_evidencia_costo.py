@@ -28,10 +28,12 @@ class PruebasEvidencia(PruebaAislada):
     def test_esquema_limpia_evidencia(self):
         resultado = ResultadoAnalisis.model_validate(
             {
-                "categoria": "otro",
-                "prioridad": "baja",
-                "resumen": "r",
-                "accion_sugerida": "a",
+                "tipo_residuo": "mixto",
+                "peligrosidad": "media",
+                "prioridad": "media",
+                "accion_sugerida": "camion_tolva",
+                "resumen": "Escombros y un colchón junto al colegio.",
+                "falta_informacion": [],
                 "evidencia": ["  «hola»  ", "", 3, "x" * 201] + [f"f{i}" for i in range(10)],
             }
         )

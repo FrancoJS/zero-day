@@ -7,7 +7,7 @@ from pruebas.apoyo import PruebaAislada, importar_app, leer_eventos_sse, resulta
 importar_app()
 import kostra  # noqa: E402
 
-TEXTO = "El sistema de pagos está caído desde las 9:00 y no podemos cobrar a nadie, es urgente."
+TEXTO = "Botaron escombros de construcción en la esquina, junto al colegio, y bloquean la vereda."
 
 # MOCK_ERROR -> (codigo, status HTTP de /api/ia/analizar)
 ERRORES_MOCK = {
@@ -39,7 +39,7 @@ class PruebasAnalizarMock(PruebaAislada):
         respuesta = self.cliente().post("/api/ia/analizar", json={"texto": TEXTO})
         self.assertEqual(respuesta.status_code, 200)
         datos = respuesta.json()
-        self.assertEqual(datos["resultado"]["categoria"], "incidente")
+        self.assertEqual(datos["resultado"]["tipo_residuo"], "escombros")
         self.assertEqual(datos["resultado"]["prioridad"], "alta")
         self.assertTrue(datos["resultado"]["resumen"])
         self.assertTrue(datos["resultado"]["accion_sugerida"])
@@ -167,15 +167,15 @@ class PruebasReintentoJson(PruebaAislada):
         self.assertIn("no cumplió el formato", mensajes[-1]["content"])
 
     def test_esquema_invalido_tambien_reintenta(self):
-        malo = resultado_valido([]).replace('"incidente"', '"urgencia"')  # categoría fuera del Literal
+        malo = resultado_valido([]).replace('"escombros"', '"urgencia"')  # tipo_residuo fuera del Literal
         falso = mock.AsyncMock(side_effect=[kostra.RespuestaIA(texto=malo), kostra.RespuestaIA(texto=resultado_valido([]))])
         with mock.patch.object(kostra, "completar", falso):
             datos = self.cliente().post("/api/ia/analizar", json={"texto": TEXTO}).json()
         self.assertEqual(datos["intentos"], 2)
-        self.assertIn("categoria", falso.await_args_list[1].args[0][-1]["content"])
+        self.assertIn("tipo_residuo", falso.await_args_list[1].args[0][-1]["content"])
 
     def test_siempre_invalido(self):
-        falso = mock.AsyncMock(return_value=kostra.RespuestaIA(texto="{\"categoria\": 1}"))
+        falso = mock.AsyncMock(return_value=kostra.RespuestaIA(texto="{\"tipo_residuo\": 1}"))
         with mock.patch.object(kostra, "completar", falso):
             respuesta = self.cliente().post("/api/ia/analizar", json={"texto": TEXTO})
         self.assertEqual(respuesta.status_code, 502)

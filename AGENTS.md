@@ -5,16 +5,20 @@ Pitch y rúbrica en detalle: [PITCH.md](./PITCH.md) · Arranque y servidor: [REA
 
 ---
 
-## 0. Desafío sorteado (completar en el kickoff, antes de pedir código)
+## 0. Desafío sorteado
 
-- **Desafío:** _(pendiente)_
-- **Usuario y momento del flujo:** _(pendiente)_
-- **Problema y consecuencia:** _(pendiente)_
-- **Parte concreta que resolvemos / qué queda fuera:** _(pendiente)_
-- **Entrada → procesamiento → resultado:** _(pendiente)_
-- **Dominio (para el prompt):** _(tema exacto; ver paso 2 de la sección 2)_
-- **Qué es real y qué es simulado:** _(pendiente)_
-- **Indicador de impacto (estimado vs observado):** _(pendiente)_
+- **Desafío:** Propuesta 1 – *O'Higgins Circular*: prototipo tecnológico que mejore algún aspecto de la gestión de residuos en Rancagua / Región de O'Higgins (reducir, reutilizar, clasificar, recuperar o gestionar). Exige: problema y usuarios claros, al menos **una funcionalidad demostrable**, y no limitarse a concientización. Se permiten **datos simulados**.
+- **Nuestro enfoque:** **reportes de microbasurales** para el municipio.
+- **Usuario y momento del flujo:** el **encargado del departamento de Gestión de Calidad** de la Municipalidad (área que ve los desechos; dato de un integrante que trabaja en la municipalidad), cuando le llegan reportes de vecinos (texto libre, informal) y tiene que decidir qué atender primero y con qué recursos. Beneficiados: vecinos del sector.
+- **Problema y consecuencia:** hoy **no existe ningún sistema** para recibir, clasificar ni priorizar reportes de microbasurales (dato de un integrante que trabaja en la municipalidad). _(Completar: por qué canal llegan hoy los avisos, si llegan.)_ Consecuencia: no hay registro, no se sabe qué es más urgente ni qué puntos se repiten; el microbasural crece.
+- **Parte concreta que resolvemos:** clasificar y priorizar cada reporte con evidencia citada, agrupar reportes del **mismo sector** (coincidencia exacta del sector del catálogo) y proponer el recurso a despachar, que el encargado **aprueba o rechaza**.
+- **Pantallas:** **vista vecino** (formulario: texto + sector elegido de una lista) y **vista encargado** (bandeja priorizada, análisis con evidencia, aprobación; después del checkpoint 11:45, **mapa Leaflet + OpenStreetMap** con un marcador por sector: color = prioridad más alta, número = reportes; si el mapa no carga, queda la lista por sector con aviso).
+- **Catálogo de sectores:** ~8 sectores de Rancagua con coordenadas fijas, **simulado** (sin GPS).
+- **Qué queda fuera:** GPS / clic en el mapa para ubicar, fotos, login, notificaciones, integración con sistemas municipales, ruteo de camiones.
+- **Entrada → procesamiento → resultado:** reporte en texto + sector → IA extrae tipo de residuo, peligrosidad, prioridad, acción sugerida, lo que falta saber y evidencia → código valida, verifica evidencia, agrupa por sector y guarda → bandeja priorizada + aprobación del despacho.
+- **Dominio (para el prompt):** residuos y microbasurales en espacios públicos de Rancagua (basura domiciliaria, escombros, voluminosos, poda, residuos peligrosos, quemas de basura). **Fuera de dominio** (luminarias, baches, ruidos, perros, etc.) → tipo `no_es_residuo` y acción `derivar`.
+- **Qué es real y qué es simulado:** real: análisis con Kostra LIVE, validación, evidencia verificada, agrupación por sector, guardado en BD. Simulado: los reportes de vecinos (de ejemplo), el sector (texto, sin GPS) y el **despacho** (solo se registra la aprobación).
+- **Indicador de impacto:** observado: segundos por reporte, aciertos en la evaluación por categoría, costo ≈ por análisis. Estimado (con supuesto explícito): tiempo de triage ahorrado al encargado y reportes duplicados detectados.
 
 ---
 
@@ -24,7 +28,7 @@ Pitch y rúbrica en detalle: [PITCH.md](./PITCH.md) · Arranque y servidor: [REA
 2. **Repo público:** nunca commitear keys, `.env` ni `tfstate`. `.gitignore` ya los excluye; si un desafío trae un CSV, revisarlo y agregarlo con `git add -f` a conciencia.
 3. **Alcance chico:** nada de login, panel de admin, CI, Kubernetes, RAG/embeddings (Kostra no tiene) ni infraestructura que el jurado no ve. Primero el flujo principal.
 4. **Honestidad:** no afirmar en UI, README ni pitch nada que no esté implementado. Lo simulado se marca como simulado; lo estimado, como estimado. Nunca cambiar a MOCK en silencio.
-5. **Cambios grandes:** pedir confirmación antes de cambiar estructura, agregar dependencias o migrar de stack (solo JSX, sin TypeScript; sin librerías de componentes ni de íconos).
+5. **Cambios grandes:** pedir confirmación antes de cambiar estructura, agregar dependencias o migrar de stack (solo JSX, sin TypeScript; sin librerías de componentes ni de íconos). Única dependencia nueva autorizada: `leaflet` (sin `react-leaflet`), solo para el mapa y solo después del checkpoint 11:45.
 6. **Idioma:** código, identificadores, endpoints, UI y commits en español (UI con "tú"). Conventional Commits (`feat: …`, `fix: …`).
 7. **Git:** ramas `feat/*` o `fix/*`; nada directo a `main`. **Antes de mergear:** correr las pruebas y, si cambió la IA, la evaluación live (sección 5).
 8. **Infra:** los agentes escriben Terraform pero **nunca corren `apply` ni `destroy`**; las credenciales de Huawei solo existen en la terminal de la persona que lo ejecuta.

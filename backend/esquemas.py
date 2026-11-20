@@ -1,4 +1,4 @@
-"""Esquemas Pydantic de entrada y salida. Cambiar aquí cuando se sortee el desafío."""
+"""Esquemas Pydantic de entrada y salida. Desafío: triage municipal de reportes de microbasurales (AGENTS.md §0)."""
 
 from datetime import datetime
 from typing import Literal
@@ -16,10 +16,16 @@ class SolicitudTexto(BaseModel):
 class ResultadoAnalisis(BaseModel):
     """Salida estructurada que se exige al modelo. Si no cumple, se reintenta una vez."""
 
-    categoria: Literal["reclamo", "consulta", "solicitud", "incidente", "otro"]
+    tipo_residuo: Literal["domiciliario", "escombros", "voluminoso", "poda", "peligroso", "mixto", "no_es_residuo"]
+    peligrosidad: Literal["baja", "media", "alta"]
     prioridad: Literal["alta", "media", "baja"]
+    accion_sugerida: Literal[
+        "cuadrilla_estandar", "camion_tolva", "retiro_especializado", "fiscalizacion", "derivar", "pedir_mas_datos"
+    ]
     resumen: str = Field(..., min_length=1, max_length=400)
-    accion_sugerida: str = Field(..., min_length=1, max_length=400)
+    falta_informacion: list[str] = Field(
+        default_factory=list, description="Datos que faltan para atender el reporte (ej. ubicación exacta, volumen)"
+    )
     evidencia: list[str] = Field(
         default_factory=list,
         description="Fragmentos literales del texto de entrada que justifican la decisión (se verifican en analisis.py)",
@@ -38,6 +44,13 @@ class ResultadoAnalisis(BaseModel):
                 if fragmento and len(fragmento) <= MAX_LARGO_FRAGMENTO:
                     limpios.append(fragmento)
         return limpios[:MAX_EVIDENCIA]
+
+    @field_validator("falta_informacion", mode="before")
+    @classmethod
+    def _limpiar_faltantes(cls, valor):
+        if not isinstance(valor, list):
+            return valor
+        return [f.strip()[:150] for f in valor if isinstance(f, str) and f.strip()][:4]
 
 
 class Uso(BaseModel):
@@ -67,7 +80,7 @@ class RegistroHistorial(BaseModel):
 
     id: int
     texto_entrada: str
-    categoria: str
+    tipo_residuo: str
     prioridad: str
     resumen: str
     accion_sugerida: str

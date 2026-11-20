@@ -3,7 +3,7 @@
 PLANTILLA PARA ADAPTAR AL DESAFÍO: `Analisis` guarda cada resultado de /api/ia/analizar
 como ejemplo. Cambiar columnas (y esquemas.RegistroHistorial) según lo que haya que guardar.
 No hay migraciones: las tablas se crean con create_all si no existen. Si se cambian
-columnas de una tabla que ya existe, borrar el volumen (`docker compose --profile bd down -v`).
+columnas de una tabla que ya existe, borrar el volumen (`docker compose down -v`).
 """
 
 from datetime import datetime, timezone
@@ -24,10 +24,10 @@ class Analisis(Base):
 
     id: Mapped[int] = mapped_column(primary_key=True)
     texto_entrada: Mapped[str] = mapped_column(Text)
-    categoria: Mapped[str] = mapped_column(String(50))
+    tipo_residuo: Mapped[str] = mapped_column(String(50))
     prioridad: Mapped[str] = mapped_column(String(50))
     resumen: Mapped[str] = mapped_column(Text)
-    accion_sugerida: Mapped[str] = mapped_column(Text)
+    accion_sugerida: Mapped[str] = mapped_column(String(50))
     modo: Mapped[str] = mapped_column(String(10))
     modelo: Mapped[str] = mapped_column(String(100))
     latencia_ms: Mapped[int]
@@ -40,7 +40,7 @@ def guardar_analisis(texto: str, respuesta: RespuestaAnalisis) -> None:
         sesion.add(
             Analisis(
                 texto_entrada=texto,
-                categoria=respuesta.resultado.categoria,
+                tipo_residuo=respuesta.resultado.tipo_residuo,
                 prioridad=respuesta.resultado.prioridad,
                 resumen=respuesta.resultado.resumen,
                 accion_sugerida=respuesta.resultado.accion_sugerida,

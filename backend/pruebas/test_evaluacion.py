@@ -66,23 +66,23 @@ class PruebasEndpointEvaluacion(PruebaAislada):
 
 class PruebasRevisar(PruebaAislada):
     CASO = {
-        "esperado": {"categoria": "incidente", "prioridad": "alta"},
+        "esperado": {"tipo_residuo": "peligroso", "prioridad": "alta"},
         "no_debe_contener": ["12.345.678-5", "ana.perez@correo.cl"],
     }
     RESULTADO_OK = {
-        "categoria": "incidente",
+        "tipo_residuo": "peligroso",
         "prioridad": "alta",
-        "resumen": "No puede entrar a su cuenta.",
-        "accion_sugerida": "Derivar a soporte.",
-        "evidencia": ["no puedo entrar a mi cuenta"],
+        "resumen": "Aceite quemado junto al canal.",
+        "accion_sugerida": "retiro_especializado",
+        "evidencia": ["aceite quemado"],
     }
 
     def test_acierto_sin_fallas(self):
         self.assertEqual(evaluar.revisar(self.CASO, self.RESULTADO_OK), [])
 
     def test_falla_por_campo_distinto(self):
-        fallas = evaluar.revisar(self.CASO, {**self.RESULTADO_OK, "categoria": "reclamo"})
-        self.assertEqual(fallas, ["categoria: esperaba 'incidente', obtuvo 'reclamo'"])
+        fallas = evaluar.revisar(self.CASO, {**self.RESULTADO_OK, "tipo_residuo": "domiciliario"})
+        self.assertEqual(fallas, ["tipo_residuo: esperaba 'peligroso', obtuvo 'domiciliario'"])
 
     def test_falla_por_dato_prohibido_en_evidencia(self):
         resultado = {**self.RESULTADO_OK, "evidencia": ["Mi RUT es 12.345.678-5"]}

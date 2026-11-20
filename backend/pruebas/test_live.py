@@ -56,7 +56,7 @@ class PruebasLiveOk(PruebaLive):
         self.assertEqual(respuesta.status_code, 200)
         datos = respuesta.json()
         self.assertEqual((datos["modo"], datos["modelo"], datos["intentos"]), ("live", "modelo-prueba", 1))
-        self.assertEqual(datos["resultado"]["categoria"], "incidente")
+        self.assertEqual(datos["resultado"]["tipo_residuo"], "escombros")
         self.assertEqual((datos["uso"]["tokens_entrada"], datos["uso"]["tokens_salida"]), USO_OK)
         self.assertIsNone(datos["uso"]["costo_clp_estimado"])  # sin precios en el entorno
         peticiones = servidor.peticiones(clave)

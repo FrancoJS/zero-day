@@ -116,10 +116,12 @@ FRAGMENTOS_STREAM = ["Hola", ", esto ", "llega ", "por partes."]
 def resultado_valido(evidencia: list[str]) -> str:
     return json.dumps(
         {
-            "categoria": "incidente",
+            "tipo_residuo": "escombros",
+            "peligrosidad": "media",
             "prioridad": "alta",
-            "resumen": "Pagos caídos desde las 9:00.",
-            "accion_sugerida": "Derivar a soporte técnico.",
+            "accion_sugerida": "camion_tolva",
+            "resumen": "Escombros y un colchón junto al colegio.",
+            "falta_informacion": [],
             "evidencia": evidencia,
         },
         ensure_ascii=False,

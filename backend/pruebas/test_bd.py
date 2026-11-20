@@ -42,7 +42,7 @@ class PruebasBdSqlite(PruebaAislada):
     def test_guarda_y_lista_del_mas_nuevo_al_mas_antiguo(self):
         cliente = self.cliente()
         self.assertEqual(cliente.get("/api/health").json()["base_datos"], "conectada")
-        textos = ["primero: el sistema no funciona", "segundo: quiero dejar un reclamo", "tercero: ok gracias"]
+        textos = ["primero: escombros en la esquina junto al colegio", "segundo: un colchón botado en la plaza", "tercero: ok gracias"]
         for texto in textos:
             respuesta = cliente.post("/api/ia/analizar", json={"texto": texto})
             self.assertEqual(respuesta.status_code, 200)
@@ -51,7 +51,7 @@ class PruebasBdSqlite(PruebaAislada):
         self.assertEqual(datos["bd"], "conectada")
         self.assertEqual([r["texto_entrada"] for r in datos["registros"]], list(reversed(textos)))
         primero = datos["registros"][0]
-        self.assertEqual((primero["modo"], primero["modelo"], primero["categoria"]), ("mock", "mock", "otro"))
+        self.assertEqual((primero["modo"], primero["modelo"], primero["tipo_residuo"]), ("mock", "mock", "no_es_residuo"))
         self.assertEqual(len(cliente.get("/api/historial?limite=2").json()["registros"]), 2)
 
     def test_limite_fuera_de_rango(self):
