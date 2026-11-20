@@ -18,6 +18,15 @@ const PASO_MS = 250;
 
 const saludo = () => ({ id: 0, rol: "bot", contenido: SALUDO });
 
+// Reconoce el sector si el vecino lo escribe ("es en Rancagua Sur"): nombres más largos primero
+// (Suroriente antes que Oriente), sin tildes ni mayúsculas y con límites de palabra.
+const normalizar = (s) => s.normalize("NFD").replace(/[\u0300-\u036f]/g, "").toLowerCase();
+export function detectarSector(texto, sectores) {
+  const limpio = ` ${normalizar(texto)} `;
+  const candidatos = [...sectores].sort((a, b) => b.nombre.length - a.nombre.length);
+  return candidatos.find((s) => new RegExp(`[^a-z]${normalizar(s.nombre)}[^a-z]`).test(limpio))?.id ?? null;
+}
+
 export default function VistaVecino() {
   const reducir = useReducedMotion();
   const idRef = useRef(1);
@@ -48,8 +57,10 @@ export default function VistaVecino() {
     ? [sector, resultado.tipo_residuo, resultado.prioridad, resultado.ubicacion].filter(Boolean).length + (falta.length === 0 ? 1 : 0)
     : sector ? 1 : 0;
   const total = 5;
-  const completo = Boolean(sector && resultado && !noEsResiduo && falta.length === 0);
-  const puedeEnviar = Boolean(sector && resultado && !noEsResiduo && (completo || respondidos >= MAX_SEGUIMIENTOS));
+  const faltaObligatorio = falta.filter((f) => !/volumen/i.test(f));
+  // Obligatorios: sector, tipo de residuo y ubicación. El volumen es opcional y no bloquea el envío.
+  const completo = Boolean(sector && resultado && !noEsResiduo && resultado.ubicacion && faltaObligatorio.length === 0);
+  const puedeEnviar = completo;
   const texto = textos.join("\n");
 
   const agregar = (...nuevos) =>
@@ -93,7 +104,7 @@ export default function VistaVecino() {
 
   /** Pregunta de seguimiento (máx. 2) o cierre, según el resultado y los contadores actuales. */
   const cierre = (r, hechas) => {
-    if (r.pregunta_seguimiento && (r.falta_informacion || []).length && hechas < MAX_SEGUIMIENTOS) {
+    if (r.pregunta_seguimiento && (r.falta_informacion || []).length) {
       setSeguimientos(hechas + 1);
       setPreguntaPendiente(true);
       setChips(esSobreVolumen(r.pregunta_seguimiento, r.falta_informacion) ? { tipo: "volumen" } : null);
@@ -102,15 +113,15 @@ export default function VistaVecino() {
     setPreguntaPendiente(false);
     setChips(null);
     return {
-      pregunta: (r.falta_informacion || []).length
-        ? "Con esto basta: puedes enviar tu reporte a la derecha."
-        : "Tu reporte está listo: revísalo a la derecha y envíalo a Gestión de Calidad.",
+      pregunta: r.ubicacion ? null : "¿Me indicas la calle, la esquina o una referencia del lugar?",
     };
   };
 
-  const analizar = async (lista, sid) => {
+  const analizar = async (lista, sidElegido) => {
     setChips(null);
     setEscribiendo(true);
+    const sid = sidElegido || detectarSector(lista.join(" "), sectores);
+    if (sid && !sidElegido) setSectorId(sid);
     try {
       const { datos, ejemplo: e } = await analizarBorrador(lista.join("\n"), sid, lista.length - 1);
       marcarEjemplo(e);
@@ -126,18 +137,23 @@ export default function VistaVecino() {
         agregar({
           rol: "bot",
           contenido:
-            "Este canal es solo para residuos y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
+            r.respuesta_vecino ||
+            "Este canal es solo para basura y microbasurales. Otros problemas (luminarias, baches, ruidos…) van por el canal general de la Municipalidad.",
           pregunta: "Si además viste basura botada, cuéntamelo y lo agrego.",
         });
         return;
       }
-      const entendi = `${lista.length === 1 ? "Gracias, ya lo estoy ordenando a la derecha. " : ""}Esto es lo que entendí: ${r.resumen}`;
+      const voz = (r.respuesta_vecino || r.resumen || "").trim();
+      const entendi = r.pregunta_seguimiento ? voz.replace(r.pregunta_seguimiento, "").trim() || voz : voz;
+      // Una sola pregunta por mensaje: si la IA ya preguntó dentro de su frase, no se repite en negrita.
+      const sinPreguntas = entendi.replace(/¿[^?]*\?/g, "").trim() || entendi;
       if (!sid) {
         setChips({ tipo: "sector" });
-        agregar({ rol: "bot", contenido: entendi, pregunta: "¿En qué sector está?" });
+        agregar({ rol: "bot", contenido: sinPreguntas, pregunta: "¿En qué sector de Rancagua está?" });
         return;
       }
-      agregar({ rol: "bot", contenido: entendi, ...cierre(r, seguimientos) });
+      const siguiente = cierre(r, seguimientos);
+      agregar({ rol: "bot", contenido: siguiente.pregunta ? sinPreguntas : entendi, ...siguiente });
     } catch (err) {
       agregar({ rol: "error", contenido: err.message || "Error desconocido." });
       setChips({ tipo: "reintentar", accion: "analizar" });
@@ -160,7 +176,7 @@ export default function VistaVecino() {
     agregar({ rol: "yo", contenido: s.nombre });
     if (resultado) {
       setVisibles((v) => Math.max(v, filasDelReporte(s, resultado).length));
-      agregar({ rol: "bot", contenido: `Anotado: ${s.nombre}.`, ...cierre(resultado, seguimientos) });
+      agregar({ rol: "bot", contenido: `Perfecto, quedó en ${s.nombre}.`, ...cierre(resultado, seguimientos) });
     } else setChips(null);
   };
 
@@ -172,7 +188,7 @@ export default function VistaVecino() {
       const { datos, ejemplo: e } = await enviarReporte(texto, sectorId);
       marcarEjemplo(e);
       setReporte(datos);
-      agregar({ rol: "bot", contenido: `Listo, enviamos tu reporte (folio #${String(datos.id).padStart(4, "0")}). Gracias por ayudar a tu barrio.` });
+      agregar({ rol: "bot", contenido: `Listo, tu reporte quedó registrado con el folio #${String(datos.id).padStart(4, "0")}. El equipo de Gestión de Calidad lo revisará. ¡Gracias por cuidar tu barrio!` });
     } catch (err) {
       agregar({ rol: "error", contenido: `No se pudo enviar el reporte: ${err.message || "error desconocido."}` });
       setChips({ tipo: "reintentar", accion: "enviar" });

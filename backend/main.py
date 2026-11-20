@@ -189,7 +189,15 @@ async def analizar_borrador_reporte(solicitud: SolicitudBorrador):
         if sector is None:
             return _error_sector_invalido()
     respuesta = await analizar_texto(solicitud.texto)
-    completo = (sector is not None) and (len(respuesta.resultado.falta_informacion) == 0)
+    r = respuesta.resultado
+    # Obligatorios: sector, tipo de residuo y ubicación. El volumen es opcional (no bloquea el envío).
+    faltan_obligatorios = [f for f in r.falta_informacion if "volumen" not in f.lower()]
+    completo = (
+        sector is not None
+        and r.tipo_residuo != "no_es_residuo"
+        and bool(r.ubicacion)
+        and not faltan_obligatorios
+    )
     return RespuestaBorrador(analisis=respuesta, completo=completo)
 
 

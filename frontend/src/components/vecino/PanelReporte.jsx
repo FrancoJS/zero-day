@@ -104,7 +104,7 @@ export default function PanelReporte({ filas, esperados, visibles, listos, total
   let etiquetaBoton = "Enviar a Gestión de Calidad";
   if (enviando) etiquetaBoton = "Enviando…";
   else if (noEsResiduo) etiquetaBoton = "Este canal es solo para residuos";
-  else if (!puedeEnviar) etiquetaBoton += ` · falta ${faltan} dato${faltan === 1 ? "" : "s"}`;
+  else if (!puedeEnviar) { const n = Math.max(1, faltan); etiquetaBoton += ` · falta ${n} dato${n === 1 ? "" : "s"}`; }
 
   return (
     <aside aria-labelledby="t-panel" className="flex min-h-0 flex-col gap-3.5 overflow-auto rounded-xl border border-gray-200 bg-white p-5 shadow-sm">

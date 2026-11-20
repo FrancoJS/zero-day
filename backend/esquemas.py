@@ -6,7 +6,7 @@ from typing import Literal
 from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 MAX_EVIDENCIA = 5
-MAX_LARGO_FRAGMENTO = 200
+MAX_LARGO_FRAGMENTO = 90  # evidencia = frases cortas (2–8 palabras); las largas se descartan
 
 
 class SolicitudTexto(BaseModel):
@@ -28,6 +28,9 @@ class ResultadoAnalisis(BaseModel):
     )
     ubicacion: str | None = Field(
         None, description="Calle o referencia mencionada en el reporte (sin datos personales); null si no la dice"
+    )
+    respuesta_vecino: str | None = Field(
+        None, description="Lo que el asistente le dice al vecino (2.ª persona, 1–2 frases); null si no viene"
     )
     pregunta_seguimiento: str | None = Field(
         None, description="Una pregunta corta al vecino sobre el dato más importante que falta; null si no falta nada"
@@ -58,13 +61,13 @@ class ResultadoAnalisis(BaseModel):
             return valor
         return [f.strip()[:150] for f in valor if isinstance(f, str) and f.strip()][:4]
 
-    @field_validator("ubicacion", "pregunta_seguimiento", mode="before")
+    @field_validator("ubicacion", "pregunta_seguimiento", "respuesta_vecino", mode="before")
     @classmethod
     def _texto_corto_opcional(cls, valor):
         # Tolerante: vacío o no-texto -> null; texto largo se recorta (no gatilla reintento).
         if not isinstance(valor, str) or not valor.strip():
             return None
-        return valor.strip()[:200]
+        return valor.strip()[:300]
 
 
 class Uso(BaseModel):
