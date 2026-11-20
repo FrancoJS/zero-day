@@ -131,7 +131,7 @@ export default function VistaVecino() {
         });
         return;
       }
-      const entendi = `${lista.length === 1 ? "Gracias, ya lo estoy ordenando a la derecha. " : ""}Entendí que se trata de ${minuscula(r.resumen)}`;
+      const entendi = `${lista.length === 1 ? "Gracias, ya lo estoy ordenando a la derecha. " : ""}Esto es lo que entendí: ${r.resumen}`;
       if (!sid) {
         setChips({ tipo: "sector" });
         agregar({ rol: "bot", contenido: entendi, pregunta: "¿En qué sector está?" });
