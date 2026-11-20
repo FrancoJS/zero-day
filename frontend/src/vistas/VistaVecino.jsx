@@ -134,12 +134,15 @@ export default function VistaVecino() {
       }
       const voz = (r.respuesta_vecino || r.resumen || "").trim();
       const entendi = r.pregunta_seguimiento ? voz.replace(r.pregunta_seguimiento, "").trim() || voz : voz;
+      // Una sola pregunta por mensaje: si la IA ya preguntó dentro de su frase, no se repite en negrita.
+      const sinPreguntas = entendi.replace(/¿[^?]*\?/g, "").trim() || entendi;
       if (!sid) {
         setChips({ tipo: "sector" });
-        agregar({ rol: "bot", contenido: entendi, pregunta: "¿En qué sector de Rancagua está?" });
+        agregar({ rol: "bot", contenido: sinPreguntas, pregunta: "¿En qué sector de Rancagua está?" });
         return;
       }
-      agregar({ rol: "bot", contenido: entendi, ...cierre(r, seguimientos) });
+      const siguiente = cierre(r, seguimientos);
+      agregar({ rol: "bot", contenido: siguiente.pregunta ? sinPreguntas : entendi, ...siguiente });
     } catch (err) {
       agregar({ rol: "error", contenido: err.message || "Error desconocido." });
       setChips({ tipo: "reintentar", accion: "analizar" });
